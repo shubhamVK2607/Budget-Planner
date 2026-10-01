@@ -18,7 +18,7 @@ export function loadData(): AppData {
     const raw = localStorage.getItem(KEY)
     if (raw) return JSON.parse(raw) as AppData
   } catch {
-    // corrupt data ho to default pe wapas
+    // If data is corrupt, fall back to the default state.
   }
   return { categories: defaultCategories, expenses: [], budgets: {} }
 }

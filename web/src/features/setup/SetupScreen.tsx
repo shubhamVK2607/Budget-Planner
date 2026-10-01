@@ -47,8 +47,8 @@ export default function Setup({ month, onDone }: Props) {
 
       {step === 1 && (
         <>
-          <h1 className="text-2xl font-bold">Is mahine ki income?</h1>
-          <p className="mb-6 mt-1 text-slate-500">Salary ya total kamai</p>
+          <h1 className="text-2xl font-bold">Monthly income</h1>
+          <p className="mb-6 mt-1 text-slate-500">Your salary or total earnings</p>
           <input
             className={inputCls}
             inputMode="numeric"
@@ -57,15 +57,15 @@ export default function Setup({ month, onDone }: Props) {
             onChange={(e) => setIncome(digits(e.target.value))}
           />
           <button className={btnCls} disabled={!Number(income)} onClick={() => setStep(2)}>
-            Aage
+            Next
           </button>
         </>
       )}
 
       {step === 2 && (
         <>
-          <h1 className="text-2xl font-bold">Fixed kharche</h1>
-          <p className="mb-4 mt-1 text-slate-500">EMI, rent, investment jaise</p>
+          <h1 className="text-2xl font-bold">Fixed expenses</h1>
+          <p className="mb-4 mt-1 text-slate-500">EMI, rent, investments, etc.</p>
 
           <div className="mb-4 space-y-2">
             {fixedItems.map((item) => (
@@ -85,7 +85,7 @@ export default function Setup({ month, onDone }: Props) {
           </div>
 
           <div className="flex gap-2">
-            <input className={inputCls} placeholder="Naam" value={name} onChange={(e) => setName(e.target.value)} />
+            <input className={inputCls} placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
             <input
               className={inputCls}
               inputMode="numeric"
@@ -95,7 +95,7 @@ export default function Setup({ month, onDone }: Props) {
             />
           </div>
           <button className="mt-2 w-full rounded-xl border border-indigo-600 py-3 font-semibold text-indigo-600" onClick={addFixed}>
-            + Add karo
+            + Add
           </button>
 
           <div className="mt-6 rounded-xl bg-indigo-50 p-4">
@@ -105,10 +105,10 @@ export default function Setup({ month, onDone }: Props) {
               <span>Variable pool</span><b>{rupee(pool)}</b>
             </div>
           </div>
-          {pool <= 0 && <p className="mt-2 text-red-600">Fixed kharche income se zyada hain!</p>}
+          {pool <= 0 && <p className="mt-2 text-red-600">Fixed expenses exceed your income!</p>}
 
           <button className={btnCls} disabled={pool <= 0} onClick={() => setStep(3)}>
-            Aage
+            Next
           </button>
         </>
       )}
@@ -116,15 +116,15 @@ export default function Setup({ month, onDone }: Props) {
       {step === 3 && (
         <>
           <h1 className="text-2xl font-bold">Daily limit</h1>
-          <p className="mb-4 mt-1 text-slate-500">Roz kitna kharch kar sakte ho</p>
+          <p className="mb-4 mt-1 text-slate-500">How much can you spend per day?</p>
 
           <button
             className={`mb-3 rounded-xl border-2 p-4 text-left ${mode === 'auto' ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200'}`}
             onClick={() => setMode('auto')}
           >
             <b>Auto</b>
-            <div className="text-2xl font-bold">{rupee(autoLimit)} / din</div>
-            <div className="text-sm text-slate-500">Pool {rupee(pool)} ÷ mahine ke din</div>
+            <div className="text-2xl font-bold">{rupee(autoLimit)} / day</div>
+            <div className="text-sm text-slate-500">Pool {rupee(pool)} ÷ days in the month</div>
           </button>
 
           <button
@@ -145,7 +145,7 @@ export default function Setup({ month, onDone }: Props) {
                 onChange={(e) => setManual(digits(e.target.value))}
               />
               {Number(manual) > autoLimit && (
-                <p className="mt-2 text-red-600">Limit {rupee(autoLimit)} se zyada nahi ho sakti</p>
+                <p className="mt-2 text-red-600">The limit cannot exceed {rupee(autoLimit)}</p>
               )}
             </>
           )}

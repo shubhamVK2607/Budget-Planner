@@ -1,4 +1,4 @@
-import type { MonthBudget } from './types'
+import type { MonthBudget, FixedItem } from '../../shared/types'
 
 export type Status = 'green' | 'yellow' | 'red'
 
@@ -8,7 +8,7 @@ export function getDaysInMonth(month: string): number {
 }
 
 export function getTotalFixed(budget: MonthBudget): number {
-  return budget.fixedItems.reduce((sum, item) => sum + item.amount, 0)
+  return budget.fixedItems.reduce((sum: number, item: FixedItem) => sum + item.amount, 0)
 }
 
 export function getPool(budget: MonthBudget): number {
