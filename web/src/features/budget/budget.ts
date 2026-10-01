@@ -40,3 +40,20 @@ export function getCurrentMonth(): string {
   const now = new Date()
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 }
+
+export function findPreviousBudget(
+  budgets: Record<string, MonthBudget>,
+  month: string
+): MonthBudget | undefined {
+  const earlier = Object.keys(budgets).filter((m) => m < month).sort()
+  const last = earlier[earlier.length - 1]
+  return last ? budgets[last] : undefined
+}
+
+export function copyBudget(source: MonthBudget, month: string): MonthBudget {
+  return {
+    ...source,
+    month,
+    fixedItems: source.fixedItems.map((item) => ({ ...item, id: crypto.randomUUID() })),
+  }
+}
