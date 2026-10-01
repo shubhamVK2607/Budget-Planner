@@ -25,6 +25,8 @@ export default function ExpenseSheet({
   const [date, setDate] = useState(initial?.date ?? getToday())
   const [note, setNote] = useState(initial?.note ?? '')
 
+  const visible = categories.filter((c) => !c.archived || c.id === initial?.categoryId)
+
   const save = () =>
     onSave({
       amount: Number(amount),
@@ -54,7 +56,7 @@ export default function ExpenseSheet({
         />
 
         <div className="mt-4 flex flex-wrap gap-2">
-          {categories.map((c) => (
+          {visible.map((c) => (
             <button
               key={c.id}
               onClick={() => setCategoryId(c.id)}

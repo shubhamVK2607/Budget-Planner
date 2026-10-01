@@ -10,6 +10,7 @@ type Props = {
   expenses: Expense[]
   onAddClick: () => void
    onExpenseClick: (expense: Expense) => void
+onSettingsClick: () => void
 }
 
 const statusColor = {
@@ -18,7 +19,7 @@ const statusColor = {
   red: 'bg-red-500',
 }
 
-export default function DashboardScreen({ budget, categories, expenses, onAddClick, onExpenseClick }: Props) {
+export default function DashboardScreen({ budget, categories, expenses, onAddClick, onExpenseClick,onSettingsClick }: Props) {
   const [year, m] = budget.month.split('-').map(Number)
   const monthName = new Date(year, m - 1).toLocaleDateString('en-IN', {
     month: 'long',
@@ -40,7 +41,10 @@ export default function DashboardScreen({ budget, categories, expenses, onAddCli
   return (
     <div className="flex min-h-screen flex-col">
       <div className="space-y-4 p-5">
-        <h1 className="text-xl font-bold">{monthName}</h1>
+       <div className="flex items-center justify-between">
+  <h1 className="text-xl font-bold">{monthName}</h1>
+  <button className="text-2xl" onClick={onSettingsClick}>⚙️</button>
+</div>
 
         {/* Today's status */}
         <div className="rounded-2xl bg-slate-50 p-5">
@@ -78,7 +82,9 @@ export default function DashboardScreen({ budget, categories, expenses, onAddCli
         <div>
           <div className="mb-2 text-sm font-medium text-slate-500">CATEGORIES</div>
           <div className="divide-y divide-slate-100 rounded-2xl border border-slate-100">
-            {categories.map((c) => (
+            {categories
+  .filter((c) => !c.archived || (catTotals[c.id] ?? 0) > 0)
+  .map((c) => (
               <div key={c.id} className="flex justify-between px-4 py-3">
                 <span>{c.name}</span>
                 <b>{rupee(catTotals[c.id] ?? 0)}</b>

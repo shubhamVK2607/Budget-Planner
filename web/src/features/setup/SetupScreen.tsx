@@ -3,21 +3,24 @@ import { getAutoDailyLimit, getPool } from '../budget/budget'
 import { rupee, digits } from '../../shared/utils/format'
 import { useState } from 'react';
 
-type Props = { month: string; onDone: (budget: MonthBudget) => void }
-
+type Props = {
+  month: string
+  initial?: MonthBudget
+  onDone: (budget: MonthBudget) => void
+  onCancel?: () => void
+}
 const inputCls =
   'w-full rounded-xl border border-slate-300 px-4 py-3 text-lg outline-none focus:border-indigo-500'
 const btnCls =
   'mt-auto w-full rounded-xl bg-indigo-600 py-4 text-lg font-semibold text-white disabled:bg-slate-300'
-
-export default function Setup({ month, onDone }: Props) {
+export default function SetupScreen({ month, initial, onDone, onCancel }: Props) {
   const [step, setStep] = useState(1)
-  const [income, setIncome] = useState('')
-  const [fixedItems, setFixedItems] = useState<FixedItem[]>([])
+  const [income, setIncome] = useState(initial ? String(initial.income) : '')
+ const [fixedItems, setFixedItems] = useState<FixedItem[]>(initial?.fixedItems ?? [])
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
-  const [mode, setMode] = useState<'auto' | 'manual'>('auto')
-  const [manual, setManual] = useState('')
+ const [mode, setMode] = useState<'auto' | 'manual'>(initial?.dailyLimitMode ?? 'auto')
+const [manual, setManual] = useState(initial?.manualDailyLimit ? String(initial.manualDailyLimit) : '')
 
   const draft: MonthBudget = {
     month,
@@ -39,6 +42,11 @@ export default function Setup({ month, onDone }: Props) {
 
   return (
     <div className="flex min-h-screen flex-col p-5">
+        {onCancel && (
+  <button className="mb-3 self-start text-slate-500" onClick={onCancel}>
+    ← Cancel
+  </button>
+)}
       <div className="mb-6 flex gap-2">
         {[1, 2, 3].map((s) => (
           <div key={s} className={`h-1.5 flex-1 rounded-full ${s <= step ? 'bg-indigo-600' : 'bg-slate-200'}`} />
@@ -151,7 +159,7 @@ export default function Setup({ month, onDone }: Props) {
           )}
 
           <button className={btnCls} disabled={manualInvalid} onClick={() => onDone(draft)}>
-            Budget ready
+            {initial ? 'Save changes' : 'Budget ready'}
           </button>
         </>
       )}

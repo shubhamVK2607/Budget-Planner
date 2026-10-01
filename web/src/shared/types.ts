@@ -1,6 +1,7 @@
 export type Category = {
   id: string
   name: string
+  archived?: boolean
 }
 
 export type Expense = {
@@ -24,3 +25,4 @@ export type MonthBudget = {
   dailyLimitMode: 'auto' | 'manual'
   manualDailyLimit?: number
 }
+
