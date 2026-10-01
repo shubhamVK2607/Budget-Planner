@@ -35,3 +35,8 @@ export function getStatus(spent: number, limit: number): Status {
   if (ratio >= 0.8) return 'yellow'
   return 'green'
 }
+
+export function getCurrentMonth(): string {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+}

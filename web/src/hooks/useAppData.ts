@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { loadData, saveData } from './storage'
-import type { AppData } from './storage'
+import { loadData, saveData, type AppData } from '../services/storage'
+
 
 export function useAppData() {
   const [data, setData] = useState<AppData>(loadData)

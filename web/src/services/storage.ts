@@ -1,4 +1,5 @@
-import type { Category, Expense, MonthBudget } from './types'
+import type { Category, Expense, MonthBudget } from "../shared/types"
+
 
 export type AppData = {
   categories: Category[]
