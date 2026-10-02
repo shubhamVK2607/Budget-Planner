@@ -3,6 +3,7 @@ import { useAppData } from '../hooks/useAppData'
 import { copyBudget, findPreviousBudget, getCurrentMonth } from '../features/budget/budget'
 import { forMonth } from '../features/expenses/expenses'
 import { shiftMonth } from '../shared/utils/date'
+import { kindOf } from '../shared/utils/kind'
 import BottomNav from '../shared/components/BottomNav'
 import type { Tab } from '../shared/components/BottomNav'
 import SetupScreen from '../features/setup/SetupScreen'
@@ -13,7 +14,7 @@ import SettingsScreen from '../features/settings/SettingsScreen'
 import ExpenseSheet from '../features/expenses/ExpenseSheet'
 import MonthHeader from '../features/months/MonthHeader'
 import NewMonthScreen from '../features/months/NewMonthScreen'
-import type { Expense, MonthBudget } from '../shared/types'
+import type { Expense, Kind, MonthBudget } from '../shared/types'
 
 type SheetState = { expense?: Expense; date?: string }
 
@@ -29,7 +30,6 @@ function App() {
   const budget = data.budgets[viewMonth]
   const previous = findPreviousBudget(data.budgets, viewMonth)
 
-  // Month navigation limits: sabse purane budget se lekar agle mahine tak
   const earliest = Object.keys(data.budgets).sort()[0]
   const minMonth = earliest && earliest < current ? earliest : current
   const canPrev = viewMonth > minMonth
@@ -63,8 +63,8 @@ function App() {
     setSheet(null)
   }
 
-  const addCategory = (name: string) => {
-    setData({ ...data, categories: [...data.categories, { id: crypto.randomUUID(), name }] })
+  const addCategory = (name: string, kind: Kind) => {
+    setData({ ...data, categories: [...data.categories, { id: crypto.randomUUID(), name, kind }] })
   }
 
   const toggleArchive = (id: string) => {
@@ -74,10 +74,18 @@ function App() {
     })
   }
 
-  const activeCategories = data.categories.filter((c) => !c.archived)
-  const lastExpense = data.expenses[data.expenses.length - 1]
-  const lastCategoryActive = activeCategories.some((c) => c.id === lastExpense?.categoryId)
-  const defaultCategoryId = lastCategoryActive ? lastExpense.categoryId : activeCategories[0]?.id ?? ''
+  // Har kind ke liye default category: us kind ka last used, nahi to pehla active
+  const pickDefault = (kind: Kind): string => {
+    const active = data.categories.filter((c) => !c.archived && kindOf(c) === kind)
+    const last = [...data.expenses]
+      .reverse()
+      .find((e) => kindOf(e) === kind && active.some((c) => c.id === e.categoryId))
+    return last?.categoryId ?? active[0]?.id ?? ''
+  }
+  const defaultCategoryIds: Record<Kind, string> = {
+    regular: pickDefault('regular'),
+    extra: pickDefault('extra'),
+  }
 
   const header = (
     <MonthHeader
@@ -172,7 +180,7 @@ function App() {
         {sheet && (
           <ExpenseSheet
             categories={data.categories}
-            defaultCategoryId={defaultCategoryId}
+            defaultCategoryIds={defaultCategoryIds}
             defaultDate={sheet.date}
             initial={sheet.expense}
             onSave={saveExpense}

@@ -1,7 +1,10 @@
+export type Kind = 'regular' | 'extra'
+
 export type Category = {
   id: string
   name: string
   archived?: boolean
+  kind?: Kind // khali = regular (purane data ke liye)
 }
 
 export type Expense = {
@@ -10,7 +13,7 @@ export type Expense = {
   categoryId: string
   date: string // "2026-10-01"
   note?: string
-  kind?: 'regular' | 'extra' // khali = regular (purane data ke liye)
+  kind?: Kind // khali = regular (purane data ke liye)
 }
 
 export type FixedItem = {
@@ -25,6 +28,6 @@ export type MonthBudget = {
   fixedItems: FixedItem[]
   dailyLimitMode: 'auto' | 'manual'
   manualDailyLimit?: number
-  extraMode?: 'percent' | 'amount' // sirf auto mode me use hota hai
-  extraValue?: number // percent ya rupees, extraMode ke hisaab se
+  extraMode?: 'percent' | 'amount'
+  extraValue?: number
 }

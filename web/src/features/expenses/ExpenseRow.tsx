@@ -17,7 +17,14 @@ export default function ExpenseRow({ expense, categoryName, showDate = false, on
   return (
     <button onClick={onClick} className="flex w-full items-center justify-between px-4 py-3 text-left">
       <div>
-        <div>{expense.note || categoryName}</div>
+        <div className="flex items-center gap-2">
+          <span>{expense.note || categoryName}</span>
+          {expense.kind === 'extra' && (
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+              Extra
+            </span>
+          )}
+        </div>
         {sub && <div className="text-xs text-slate-400">{sub}</div>}
       </div>
       <b>{rupee(expense.amount)}</b>
