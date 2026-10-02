@@ -6,15 +6,16 @@ import { getToday } from '../../shared/utils/date'
 type Props = {
   categories: Category[]
   defaultCategoryId: string
+  defaultDate?: string
   initial?: Expense
   onSave: (fields: Omit<Expense, 'id'>) => void
   onDelete?: () => void
   onClose: () => void
 }
-
 export default function ExpenseSheet({
   categories,
   defaultCategoryId,
+  defaultDate,
   initial,
   onSave,
   onDelete,
@@ -22,7 +23,7 @@ export default function ExpenseSheet({
 }: Props) {
   const [amount, setAmount] = useState(initial ? String(initial.amount) : '')
   const [categoryId, setCategoryId] = useState(initial?.categoryId ?? defaultCategoryId)
-  const [date, setDate] = useState(initial?.date ?? getToday())
+const [date, setDate] = useState(initial?.date ?? defaultDate ?? getToday())
   const [note, setNote] = useState(initial?.note ?? '')
 
   const visible = categories.filter((c) => !c.archived || c.id === initial?.categoryId)
@@ -36,7 +37,7 @@ export default function ExpenseSheet({
     })
 
   return (
-    <div className="fixed inset-0 z-10 flex items-end bg-black/40" onClick={onClose}>
+    <div className="fixed inset-0 z-20 flex items-end bg-black/40" onClick={onClose}>
       <div
         className="mx-auto w-full max-w-[480px] rounded-t-3xl bg-white p-5"
         onClick={(e) => e.stopPropagation()}

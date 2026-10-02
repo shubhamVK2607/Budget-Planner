@@ -7,12 +7,15 @@ import BottomNav from '../shared/components/BottomNav'
 import type { Tab } from '../shared/components/BottomNav'
 import SetupScreen from '../features/setup/SetupScreen'
 import DashboardScreen from '../features/dashboard/DashboardScreen'
+import CalendarScreen from '../features/calendar/CalendarScreen'
 import CategoriesScreen from '../features/categories/CategoriesScreen'
 import SettingsScreen from '../features/settings/SettingsScreen'
 import ExpenseSheet from '../features/expenses/ExpenseSheet'
 import MonthHeader from '../features/months/MonthHeader'
 import NewMonthScreen from '../features/months/NewMonthScreen'
 import type { Expense, MonthBudget } from '../shared/types'
+
+type SheetState = { expense?: Expense; date?: string }
 
 function App() {
   const [data, setData] = useAppData()
@@ -21,7 +24,7 @@ function App() {
   const [tab, setTab] = useState<Tab>('home')
   const [editingBudget, setEditingBudget] = useState(false)
   const [startFresh, setStartFresh] = useState(false)
-  const [sheet, setSheet] = useState<{ expense?: Expense } | null>(null)
+  const [sheet, setSheet] = useState<SheetState | null>(null)
 
   const budget = data.budgets[viewMonth]
   const previous = findPreviousBudget(data.budgets, viewMonth)
@@ -89,7 +92,6 @@ function App() {
   let content
   if (!budget) {
     if (!previous || startFresh) {
-      // Pehli baar ka setup, ya "Start fresh"
       content = (
         <SetupScreen
           month={viewMonth}
@@ -139,7 +141,16 @@ function App() {
               onExpenseClick={(expense) => setSheet({ expense })}
             />
           )}
-          {tab === 'calendar' && <p className="p-5 text-slate-400">Calendar is coming in the next step.</p>}
+          {tab === 'calendar' && (
+            <CalendarScreen
+              key={viewMonth}
+              budget={budget}
+              categories={data.categories}
+              expenses={data.expenses}
+              onAddClick={(date) => setSheet({ date })}
+              onExpenseClick={(expense) => setSheet({ expense })}
+            />
+          )}
           {tab === 'categories' && (
             <CategoriesScreen
               categories={data.categories}
@@ -162,6 +173,7 @@ function App() {
           <ExpenseSheet
             categories={data.categories}
             defaultCategoryId={defaultCategoryId}
+            defaultDate={sheet.date}
             initial={sheet.expense}
             onSave={saveExpense}
             onDelete={sheet.expense ? deleteExpense : undefined}
