@@ -1,22 +1,26 @@
 import { useState } from 'react'
 import { useAppData } from '../hooks/useAppData'
 import { copyBudget, findPreviousBudget, getCurrentMonth } from '../features/budget/budget'
+import { forMonth } from '../features/expenses/expenses'
 import { shiftMonth } from '../shared/utils/date'
+import BottomNav from '../shared/components/BottomNav'
+import type { Tab } from '../shared/components/BottomNav'
 import SetupScreen from '../features/setup/SetupScreen'
 import DashboardScreen from '../features/dashboard/DashboardScreen'
+import CategoriesScreen from '../features/categories/CategoriesScreen'
 import SettingsScreen from '../features/settings/SettingsScreen'
 import ExpenseSheet from '../features/expenses/ExpenseSheet'
 import MonthHeader from '../features/months/MonthHeader'
 import NewMonthScreen from '../features/months/NewMonthScreen'
 import type { Expense, MonthBudget } from '../shared/types'
 
-type Screen = 'dashboard' | 'settings' | 'editBudget' | 'setupNew'
-
 function App() {
   const [data, setData] = useAppData()
   const current = getCurrentMonth()
   const [viewMonth, setViewMonth] = useState(current)
-  const [screen, setScreen] = useState<Screen>('dashboard')
+  const [tab, setTab] = useState<Tab>('home')
+  const [editingBudget, setEditingBudget] = useState(false)
+  const [startFresh, setStartFresh] = useState(false)
   const [sheet, setSheet] = useState<{ expense?: Expense } | null>(null)
 
   const budget = data.budgets[viewMonth]
@@ -30,7 +34,8 @@ function App() {
 
   const changeMonth = (month: string) => {
     setViewMonth(month)
-    setScreen('dashboard')
+    setStartFresh(false)
+    setEditingBudget(false)
   }
 
   const saveBudget = (b: MonthBudget) => {
@@ -71,78 +76,88 @@ function App() {
   const lastCategoryActive = activeCategories.some((c) => c.id === lastExpense?.categoryId)
   const defaultCategoryId = lastCategoryActive ? lastExpense.categoryId : activeCategories[0]?.id ?? ''
 
-  const header = (withSettings: boolean) => (
+  const header = (
     <MonthHeader
       month={viewMonth}
       canPrev={canPrev}
       canNext={canNext}
       onPrev={() => changeMonth(shiftMonth(viewMonth, -1))}
       onNext={() => changeMonth(shiftMonth(viewMonth, 1))}
-      onSettings={withSettings ? () => setScreen('settings') : undefined}
     />
   )
 
   let content
   if (!budget) {
-    if (!previous || screen === 'setupNew') {
+    if (!previous || startFresh) {
       // Pehli baar ka setup, ya "Start fresh"
       content = (
         <SetupScreen
           month={viewMonth}
           onDone={(b) => {
             saveBudget(b)
-            setScreen('dashboard')
+            setStartFresh(false)
           }}
-          onCancel={previous ? () => setScreen('dashboard') : undefined}
+          onCancel={previous ? () => setStartFresh(false) : undefined}
         />
       )
     } else {
       content = (
         <>
-          {header(false)}
+          {header}
           <NewMonthScreen
             month={viewMonth}
             previous={previous}
             onCopy={() => saveBudget(copyBudget(previous, viewMonth))}
-            onFresh={() => setScreen('setupNew')}
+            onFresh={() => setStartFresh(true)}
           />
         </>
       )
     }
-  } else if (screen === 'editBudget') {
+  } else if (editingBudget) {
     content = (
       <SetupScreen
         month={viewMonth}
         initial={budget}
         onDone={(b) => {
           saveBudget(b)
-          setScreen('settings')
+          setEditingBudget(false)
         }}
-        onCancel={() => setScreen('settings')}
-      />
-    )
-  } else if (screen === 'settings') {
-    content = (
-      <SettingsScreen
-        budget={budget}
-        categories={data.categories}
-        onEditBudget={() => setScreen('editBudget')}
-        onAddCategory={addCategory}
-        onToggleArchive={toggleArchive}
-        onBack={() => setScreen('dashboard')}
+        onCancel={() => setEditingBudget(false)}
       />
     )
   } else {
     content = (
       <>
-        {header(true)}
-        <DashboardScreen
-          budget={budget}
-          categories={data.categories}
-          expenses={data.expenses}
-          onAddClick={() => setSheet({})}
-          onExpenseClick={(expense) => setSheet({ expense })}
-        />
+        {tab !== 'settings' && header}
+        <div className="flex-1 pb-20">
+          {tab === 'home' && (
+            <DashboardScreen
+              budget={budget}
+              categories={data.categories}
+              expenses={data.expenses}
+              onAddClick={() => setSheet({})}
+              onExpenseClick={(expense) => setSheet({ expense })}
+            />
+          )}
+          {tab === 'calendar' && <p className="p-5 text-slate-400">Calendar is coming in the next step.</p>}
+          {tab === 'categories' && (
+            <CategoriesScreen
+              categories={data.categories}
+              monthExpenses={forMonth(data.expenses, viewMonth)}
+              onExpenseClick={(expense) => setSheet({ expense })}
+            />
+          )}
+          {tab === 'settings' && (
+            <SettingsScreen
+              budget={budget}
+              categories={data.categories}
+              onEditBudget={() => setEditingBudget(true)}
+              onAddCategory={addCategory}
+              onToggleArchive={toggleArchive}
+            />
+          )}
+        </div>
+        <BottomNav active={tab} onChange={setTab} />
         {sheet && (
           <ExpenseSheet
             categories={data.categories}
