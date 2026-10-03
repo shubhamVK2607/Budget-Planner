@@ -88,16 +88,23 @@ export default function CalendarScreen({ budget, categories, expenses, onAddClic
           )
         })}
       </div>
-
-      <div className="mt-3 flex flex-wrap items-center gap-x-10 gap-y-1 text-xs text-slate-500">
-        <span>🟩 Within limit</span>
-        <span>🟨 Close to limit</span>
-        <span>🟥 Over limit</span>
-        <span>⬜ Upcoming</span>
-        <span className="flex items-center gap-1">
-          <span className="h-2 w-2 rounded-full bg-orange-500" /> Extra expense
-        </span>
-      </div>
+<div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-[11px] text-slate-500">
+  <span className="flex items-center gap-1">
+    <span className="h-2.5 w-2.5 rounded-sm bg-emerald-300" /> Within limit
+  </span>
+  <span className="flex items-center gap-1">
+    <span className="h-2.5 w-2.5 rounded-sm bg-amber-300" /> Close
+  </span>
+  <span className="flex items-center gap-1">
+    <span className="h-2.5 w-2.5 rounded-sm bg-red-300" /> Over
+  </span>
+  <span className="flex items-center gap-1">
+    <span className="h-2.5 w-2.5 rounded-sm bg-slate-200" /> Upcoming
+  </span>
+  <span className="flex items-center gap-1">
+    <span className="h-1.5 w-1.5 rounded-full bg-orange-500" /> Extra
+  </span>
+</div>
 
       {selected && (
         <div className="mt-5">

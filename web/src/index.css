@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
 body {
-  background: #e2e8f0;
+  background: #ffffff;
+}
+
+@media (min-width: 481px) {
+  body {
+    background: #e2e8f0;
+  }
 }

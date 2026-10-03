@@ -1,6 +1,6 @@
 import { digits, inWords, rupee } from '../../shared/utils/format'
 
-const QUICK_ADD = [5000, 10000, 25000, 50000]
+const QUICK_ADD = [25000, 50000, 100000, 150000, 200000]
 const MAX_INCOME = 999999999
 
 type Props = {
@@ -19,8 +19,7 @@ export default function IncomeStep({ value, onChange, onNext }: Props) {
   return (
     <>
       <div className="flex flex-1 flex-col justify-center pb-6">
-        <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Step 1 of 3</p>
-        <h1 className="mt-1 text-2xl font-bold">What's your monthly income?</h1>
+        <h1 className="text-2xl font-bold">What's your monthly income?</h1>
         <p className="mt-2 text-slate-500">Your salary or total earnings for this month.</p>
 
         <div className="mt-8 flex items-baseline justify-center gap-1 border-b-2 border-slate-200 pb-2 focus-within:border-indigo-500">
@@ -32,7 +31,7 @@ export default function IncomeStep({ value, onChange, onNext }: Props) {
             value={display}
             onChange={(e) => onChange(digits(e.target.value).slice(0, 9))}
             onKeyDown={(e) => e.key === 'Enter' && amount > 0 && onNext()}
-            style={{ width: `${Math.max(display.length, 1) + 1}ch` }}
+            style={{ width: `${Math.max(display.length, 1)}ch` }}
             className="max-w-[80%] bg-transparent text-center text-3xl font-bold outline-none placeholder:text-slate-300"
           />
         </div>
@@ -43,7 +42,7 @@ export default function IncomeStep({ value, onChange, onNext }: Props) {
             <button
               key={n}
               onClick={() => add(n)}
-              className="rounded-full cursor-pointer bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 active:scale-95 active:bg-indigo-100"
+              className="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 active:scale-95 active:bg-indigo-100"
             >
               + {rupee(n)}
             </button>
@@ -51,7 +50,7 @@ export default function IncomeStep({ value, onChange, onNext }: Props) {
           {amount > 0 && (
             <button
               onClick={() => onChange('')}
-              className="rounded-full px-4 py-2 text-sm font-medium cursor-pointer text-slate-400 active:scale-95"
+              className="rounded-full px-4 py-2 text-sm font-medium text-slate-400 active:scale-95"
             >
               Clear
             </button>
@@ -69,7 +68,7 @@ export default function IncomeStep({ value, onChange, onNext }: Props) {
       <button
         disabled={amount <= 0}
         onClick={onNext}
-        className="w-full rounded-xl cursor-pointer bg-indigo-600 py-4 text-lg font-semibold text-white disabled:bg-slate-300"
+        className="w-full rounded-xl bg-indigo-600 py-4 text-lg font-semibold text-white disabled:bg-slate-300"
       >
         Next
       </button>

@@ -121,7 +121,7 @@ export default function DashboardScreen({ budget, categories, expenses, onAddCli
         </div>
       </div>
 
-      {/* REGULAR card: Today + This month */}
+      {/* REGULAR card */}
       <div className={`rounded-2xl border p-5 ${rs.card}`}>
         <div className="flex items-center justify-between">
           <span className="text-sm font-bold tracking-wide text-slate-700">REGULAR</span>
@@ -150,7 +150,7 @@ export default function DashboardScreen({ budget, categories, expenses, onAddCli
             </div>
             {todayLimit < baseLimit && (
               <div className="mt-1 text-xs text-slate-500">
-                Reduced from {rupee(baseLimit)} because extra expenses went over budget.
+                Reduced from {rupee(baseLimit)} because extra spending went over budget.
               </div>
             )}
           </div>
@@ -160,7 +160,7 @@ export default function DashboardScreen({ budget, categories, expenses, onAddCli
       {/* EXTRA card */}
       <div className={`rounded-2xl border p-5 ${es.card}`}>
         <div className="flex items-center justify-between">
-          <span className="text-sm font-bold tracking-wide text-slate-700">EXTRA · big expenses</span>
+          <span className="text-sm font-bold tracking-wide text-slate-700">EXTRA</span>
           <span className={`rounded-full bg-white px-3 py-1 text-xs font-semibold ${es.text}`}>
             {extraLabel[extraStatus]}
           </span>
@@ -170,13 +170,16 @@ export default function DashboardScreen({ budget, categories, expenses, onAddCli
           <span className="text-lg font-medium text-slate-400">/ {rupee(extraBudget)}</span>
         </div>
         <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-white">
-          <div className={`h-full rounded-full ${es.bar}`} style={{ width: `${percentOf(extraSpent, extraBudget)}%` }} />
+          <div
+            className={`h-full rounded-full ${es.bar}`}
+            style={{ width: `${percentOf(extraSpent, extraBudget)}%` }}
+          />
         </div>
         <div className={`mt-2 text-sm font-medium ${es.text}`}>
           {extraOver
             ? `${rupee(extraSpent - extraBudget)} over, taken from your regular budget`
-            : `${rupee(extraBudget - extraSpent)} left for big expenses`}
-        </div> 
+            : `${rupee(extraBudget - extraSpent)} left in extra budget`}
+        </div>
       </div>
 
       {/* Expenses + toggle */}
@@ -189,7 +192,7 @@ export default function DashboardScreen({ budget, categories, expenses, onAddCli
                 <button
                   key={r}
                   onClick={() => setRange(r)}
-                  className={`rounded-lg cursor-pointer px-3 py-1 ${range === r ? 'bg-white shadow-sm' : 'text-slate-500'}`}
+                  className={`rounded-lg px-3 py-1 ${range === r ? 'bg-white shadow-sm' : 'text-slate-500'}`}
                 >
                   {r === 'today' ? 'Today' : 'This month'}
                 </button>
@@ -219,10 +222,10 @@ export default function DashboardScreen({ budget, categories, expenses, onAddCli
 
       {/* Floating + (sirf current month) */}
       {isCurrentMonth && (
-        <div className="pointer-events-none fixed bottom-20 left-1/2 z-10 flex w-full max-w-[480px] -translate-x-1/2 justify-end px-5">
+        <div className="pointer-events-none fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-10 flex w-full max-w-[480px] -translate-x-1/2 justify-end px-5">
           <button
             onClick={onAddClick}
-            className="pointer-events-auto cursor-pointer flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg"
+            className="pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg"
           >
             <Plus size={28} />
           </button>

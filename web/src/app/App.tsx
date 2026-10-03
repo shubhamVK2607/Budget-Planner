@@ -142,7 +142,7 @@ function App() {
     content = (
       <>
         {tab !== 'settings' && header}
-        <div className="flex-1 pb-20">
+        <div className="flex-1 pb-[calc(7rem+env(safe-area-inset-bottom))]">
           {tab === 'home' && (
             <DashboardScreen
               budget={budget}

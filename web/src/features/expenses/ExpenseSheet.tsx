@@ -53,7 +53,7 @@ export default function ExpenseSheet({
   return (
     <div className="fixed inset-0 z-20 flex items-end bg-black/40" onClick={onClose}>
       <div
-        className="mx-auto w-full max-w-[480px] rounded-t-3xl bg-white p-5"
+        className="mx-auto w-full max-w-[480px] pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
@@ -68,7 +68,7 @@ export default function ExpenseSheet({
               onClick={() => switchKind(k)}
               className={`flex-1 cursor-pointer rounded-lg py-2 ${kind === k ? 'bg-white shadow-sm' : 'text-slate-500'}`}
             >
-              {k === 'regular' ? 'Regular' : 'Extra (big / one-time)'}
+              {k === 'regular' ? 'Regular' : 'Extra'}
             </button>
           ))}
         </div>

@@ -47,7 +47,7 @@ export default function SettingsScreen({
         onToggleArchive={onToggleArchive}
       />
       <CategoryManager
-        title="EXTRA CATEGORIES (big / one-time)"
+        title="EXTRA CATEGORIES (non-daily spending)"
         kind="extra"
         categories={categories}
         onAdd={onAddCategory}

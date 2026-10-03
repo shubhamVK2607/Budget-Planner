@@ -14,7 +14,7 @@ type Props = { active: Tab; onChange: (tab: Tab) => void }
 
 export default function BottomNav({ active, onChange }: Props) {
   return (
-    <nav className="fixed bottom-0 left-1/2 z-10 flex w-full max-w-[480px] -translate-x-1/2 border-t border-slate-200 bg-white">
+    <nav className="fixed bottom-0 left-1/2 z-10 flex w-full max-w-[480px] -translate-x-1/2 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)]">
       {tabs.map(({ id, label, Icon }) => (
         <button
           key={id}
