@@ -87,7 +87,6 @@ export default function DashboardScreen({ budget, categories, expenses, onAddCli
   const catName = (id: string) => categories.find((c) => c.id === id)?.name ?? 'Unknown'
 
   const rs = statusStyle[regularCardStatus]
-  const ms = statusStyle[regularMonthStatus]
   const es = statusStyle[extraStatus]
 
   return (
