@@ -11,6 +11,7 @@ type Props = {
 
 export default function IncomeStep({ value, onChange, onNext }: Props) {
   const amount = Number(value) || 0
+  const display = amount ? amount.toLocaleString('en-IN') : ''
   const words = inWords(amount)
 
   const add = (n: number) => onChange(String(Math.min(amount + n, MAX_INCOME)))
@@ -22,16 +23,17 @@ export default function IncomeStep({ value, onChange, onNext }: Props) {
         <h1 className="mt-1 text-2xl font-bold">What's your monthly income?</h1>
         <p className="mt-2 text-slate-500">Your salary or total earnings for this month.</p>
 
-        <div className="mt-10 flex items-baseline justify-center gap-2 border-b-2 border-slate-200 pb-3 focus-within:border-indigo-500">
-          <span className="text-4xl font-bold text-slate-300">₹</span>
+        <div className="mt-8 flex items-baseline justify-center gap-1 border-b-2 border-slate-200 pb-2 focus-within:border-indigo-500">
+          <span className="text-2xl font-semibold text-slate-400">₹</span>
           <input
             autoFocus
             inputMode="numeric"
             placeholder="0"
-            value={amount ? amount.toLocaleString('en-IN') : ''}
+            value={display}
             onChange={(e) => onChange(digits(e.target.value).slice(0, 9))}
             onKeyDown={(e) => e.key === 'Enter' && amount > 0 && onNext()}
-            className="w-full min-w-0 bg-transparent text-center text-5xl font-bold outline-none placeholder:text-slate-300"
+            style={{ width: `${Math.max(display.length, 1) + 1}ch` }}
+            className="max-w-[80%] bg-transparent text-center text-3xl font-bold outline-none placeholder:text-slate-300"
           />
         </div>
         <div className="mt-2 h-6 text-center font-medium text-indigo-600">{words}</div>
@@ -56,7 +58,7 @@ export default function IncomeStep({ value, onChange, onNext }: Props) {
           )}
         </div>
 
-        <div className="mt-10 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
+        <div className="mt-8 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
           <div className="mb-1 font-semibold text-slate-700">What happens next</div>
           <div>1. Add your fixed bills (rent, EMI, SIP)</div>
           <div>2. We show what's left to spend</div>

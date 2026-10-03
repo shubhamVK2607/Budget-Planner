@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useAppData } from '../hooks/useAppData'
 import { copyBudget, findPreviousBudget, getCurrentMonth } from '../features/budget/budget'
+import { getOverflowNotice } from '../features/budget/overflowNotice'
 import { forMonth } from '../features/expenses/expenses'
 import { shiftMonth } from '../shared/utils/date'
 import { kindOf } from '../shared/utils/kind'
 import BottomNav from '../shared/components/BottomNav'
 import type { Tab } from '../shared/components/BottomNav'
+import NoticeDialog from '../shared/components/NoticeDialog'
 import SetupScreen from '../features/setup/SetupScreen'
 import DashboardScreen from '../features/dashboard/DashboardScreen'
 import CalendarScreen from '../features/calendar/CalendarScreen'
@@ -26,6 +28,7 @@ function App() {
   const [editingBudget, setEditingBudget] = useState(false)
   const [startFresh, setStartFresh] = useState(false)
   const [sheet, setSheet] = useState<SheetState | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const budget = data.budgets[viewMonth]
   const previous = findPreviousBudget(data.budgets, viewMonth)
@@ -47,13 +50,13 @@ function App() {
 
   const saveExpense = (fields: Omit<Expense, 'id'>) => {
     const editing = sheet?.expense
-    setData({
-      ...data,
-      expenses: editing
-        ? data.expenses.map((e) => (e.id === editing.id ? { ...fields, id: editing.id } : e))
-        : [...data.expenses, { ...fields, id: crypto.randomUUID() }],
-    })
+    const nextExpenses = editing
+      ? data.expenses.map((e) => (e.id === editing.id ? { ...fields, id: editing.id } : e))
+      : [...data.expenses, { ...fields, id: crypto.randomUUID() }]
+
+    setData({ ...data, expenses: nextExpenses })
     setSheet(null)
+    setNotice(getOverflowNotice(data.budgets[fields.date.slice(0, 7)], data.expenses, nextExpenses))
   }
 
   const deleteExpense = () => {
@@ -188,6 +191,7 @@ function App() {
             onClose={() => setSheet(null)}
           />
         )}
+        {notice && <NoticeDialog title="Extra budget exceeded" message={notice} onClose={() => setNotice(null)} />}
       </>
     )
   }

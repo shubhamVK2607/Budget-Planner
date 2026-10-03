@@ -3,8 +3,8 @@ import { Plus } from 'lucide-react'
 import type { Category, Expense, MonthBudget } from '../../shared/types'
 import { rupee } from '../../shared/utils/format'
 import { formatShortDate, getToday } from '../../shared/utils/date'
-import { getCurrentMonth, getDailyLimit, getDaysInMonth, getStatus } from '../budget/budget'
-import { forDate, forMonth, sumAmount } from '../expenses/expenses'
+import { getCurrentMonth, getDailyLimitOn, getDaysInMonth, getStatus } from '../budget/budget'
+import { forDate, forMonth, ofKind, sumAmount } from '../expenses/expenses'
 import ExpenseRow from '../expenses/ExpenseRow'
 
 type Props = {
@@ -35,7 +35,6 @@ export default function CalendarScreen({ budget, categories, expenses, onAddClic
   const [year, m] = budget.month.split('-').map(Number)
   const daysInMonth = getDaysInMonth(budget.month)
   const startOffset = new Date(year, m - 1, 1).getDay() // 0 = Sunday
-  const dailyLimit = getDailyLimit(budget)
   const monthExpenses = forMonth(expenses, budget.month)
 
   const dateOf = (day: number) => `${budget.month}-${String(day).padStart(2, '0')}`
@@ -47,7 +46,9 @@ export default function CalendarScreen({ budget, categories, expenses, onAddClic
   ]
 
   const dayExpenses = selected ? forDate(monthExpenses, selected) : []
-  const daySpent = sumAmount(dayExpenses)
+  const dayRegular = sumAmount(ofKind(dayExpenses, 'regular'))
+  const dayExtra = sumAmount(ofKind(dayExpenses, 'extra'))
+  const dayLimit = selected ? getDailyLimitOn(budget, expenses, selected) : 0
   const canAdd = selected !== null && selected <= today
 
   return (
@@ -63,32 +64,39 @@ export default function CalendarScreen({ budget, categories, expenses, onAddClic
           if (day === null) return <div key={`empty-${i}`} />
           const date = dateOf(day)
           const isFuture = date > today
-          const spent = sumAmount(forDate(monthExpenses, date))
-          const style = isFuture ? cellStyle.future : cellStyle[getStatus(spent, dailyLimit)]
+          const dayList = forDate(monthExpenses, date)
+          const regular = sumAmount(ofKind(dayList, 'regular'))
+          const hasExtra = ofKind(dayList, 'extra').length > 0
+          const limit = getDailyLimitOn(budget, expenses, date)
+          const style = isFuture ? cellStyle.future : cellStyle[getStatus(regular, limit)]
 
           return (
             <button
               key={date}
               disabled={isFuture}
               onClick={() => setSelected(date)}
-              className={`flex aspect-square flex-col items-center justify-center rounded-xl text-sm font-semibold ${style} ${
+              className={`relative flex aspect-square flex-col items-center justify-center rounded-xl text-sm font-semibold ${style} ${
                 selected === date ? 'ring-2 ring-indigo-600' : ''
               } ${date === today ? 'underline underline-offset-2' : ''}`}
             >
               {day}
               <span className="text-[10px] font-medium leading-none">
-                {!isFuture && spent > 0 ? compact(spent) : ''}
+                {!isFuture && regular > 0 ? compact(regular) : ''}
               </span>
+              {hasExtra && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-orange-500" />}
             </button>
           )
         })}
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
         <span>🟩 Within limit</span>
         <span>🟨 Close to limit</span>
         <span>🟥 Over limit</span>
         <span>⬜ Upcoming</span>
+        <span className="flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-orange-500" /> Extra expense
+        </span>
       </div>
 
       {selected && (
@@ -97,8 +105,13 @@ export default function CalendarScreen({ budget, categories, expenses, onAddClic
             <div>
               <div className="font-semibold">{formatShortDate(selected)}</div>
               <div className="text-sm text-slate-500">
-                {rupee(daySpent)} / {rupee(dailyLimit)}
+                Regular {rupee(dayRegular)} / {rupee(dayLimit)}
               </div>
+              {dayExtra > 0 && (
+                <div className="text-sm text-orange-600">
+                  + {rupee(dayExtra)} extra (not counted in daily limit)
+                </div>
+              )}
             </div>
             {canAdd && (
               <button

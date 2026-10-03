@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Expense, MonthBudget } from '../../shared/types'
-import { getDailyLimit, getDailyLimitOn, getExtraBudget, getPool, getRegularBudget } from './budget'
+import { getDailyLimit, getDailyLimitOn, getExtraBudget, getOverflow, getPool, getRegularBudget } from './budget'
 
 // Oct 2026 = 31 din, pool = 1,00,000 − 75,000 = 25,000
 const base: MonthBudget = {
@@ -93,5 +93,18 @@ describe('extra overflow', () => {
   it('never goes below zero', () => {
     const list = [expense(10000, '2026-10-30', 'extra')] // sirf 1 din bacha
     expect(getDailyLimitOn(b, list, '2026-10-31')).toBe(0)
+  })
+})
+
+describe('getOverflow', () => {
+  const b = withExtra('percent', 20) // extra budget 5000
+
+  it('is zero while extra is within budget', () => {
+    expect(getOverflow(b, [expense(4000, '2026-10-10', 'extra')])).toBe(0)
+  })
+
+  it('returns the amount over budget', () => {
+    const list = [expense(4000, '2026-10-10', 'extra'), expense(3000, '2026-10-12', 'extra')]
+    expect(getOverflow(b, list)).toBe(2000)
   })
 })

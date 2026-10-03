@@ -113,3 +113,11 @@ export function copyBudget(source: MonthBudget, month: string): MonthBudget {
     fixedItems: source.fixedItems.map((item) => ({ ...item, id: crypto.randomUUID() })),
   }
 }
+
+// Extra budget se kitna zyada kharch ho gaya (is mahine me)
+export function getOverflow(budget: MonthBudget, expenses: Expense[]): number {
+  const extraSpent = expenses
+    .filter((e) => e.kind === 'extra' && e.date.startsWith(budget.month))
+    .reduce((sum, e) => sum + e.amount, 0)
+  return Math.max(0, extraSpent - getExtraBudget(budget))
+}

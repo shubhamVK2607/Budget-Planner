@@ -12,9 +12,9 @@ type Props = {
   onExpenseClick: (expense: Expense) => void
 }
 
-const SECTIONS: { kind: Kind; title: string; bar: string }[] = [
-  { kind: 'regular', title: 'REGULAR', bar: 'bg-indigo-500' },
-  { kind: 'extra', title: 'EXTRA', bar: 'bg-amber-500' },
+const SECTIONS: { kind: Kind; title: string }[] = [
+  { kind: 'regular', title: 'REGULAR' },
+  { kind: 'extra', title: 'EXTRA' },
 ]
 
 export default function CategoriesScreen({ categories, monthExpenses, onExpenseClick }: Props) {
@@ -58,7 +58,7 @@ export default function CategoriesScreen({ categories, monthExpenses, onExpenseC
 
   return (
     <div className="space-y-5 p-5">
-      {SECTIONS.map(({ kind, title, bar }) => {
+      {SECTIONS.map(({ kind, title }) => {
         const kindExpenses = monthExpenses.filter((e) => (e.kind ?? 'regular') === kind)
         const kindTotal = sumAmount(kindExpenses)
         const rows = categories.filter(
@@ -79,18 +79,14 @@ export default function CategoriesScreen({ categories, monthExpenses, onExpenseC
                   <button
                     key={c.id}
                     onClick={() => setSelectedId(c.id)}
-                    className="flex w-full items-center gap-3 px-4 py-3 text-left"
+                    className="flex w-full items-center justify-between px-4 py-3 text-left"
                   >
-                    <div className="flex-1">
-                      <div className="flex justify-between">
-                        <span>{c.name}</span>
-                        <b>{rupee(total)}</b>
-                      </div>
-                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                        <div className={`h-full rounded-full ${bar}`} style={{ width: `${percent}%` }} />
-                      </div>
-                    </div>
-                    <ChevronRight size={18} className="text-slate-300" />
+                    <span className={total > 0 ? '' : 'text-slate-400'}>{c.name}</span>
+                    <span className="flex items-center gap-2">
+                      {total > 0 && <span className="text-xs text-slate-400">{percent}%</span>}
+                      <b className={total > 0 ? '' : 'font-medium text-slate-300'}>{rupee(total)}</b>
+                      <ChevronRight size={18} className="text-slate-300" />
+                    </span>
                   </button>
                 )
               })}
