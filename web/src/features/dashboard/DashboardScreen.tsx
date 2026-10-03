@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { ChevronRight, Plus, TrendingUp } from 'lucide-react'
 import type { Category, Expense, MonthBudget } from '../../shared/types'
 import { rupee } from '../../shared/utils/format'
 import { getToday } from '../../shared/utils/date'
@@ -23,6 +23,7 @@ type Props = {
   expenses: Expense[]
   onAddClick: () => void
   onExpenseClick: (expense: Expense) => void
+  onTrendClick: () => void
 }
 
 const statusStyle: Record<Status, { card: string; bar: string; text: string }> = {
@@ -46,7 +47,14 @@ const extraLabel: Record<Status, string> = {
 const percentOf = (spent: number, total: number) =>
   total > 0 ? Math.min(100, Math.round((spent / total) * 100)) : spent > 0 ? 100 : 0
 
-export default function DashboardScreen({ budget, categories, expenses, onAddClick, onExpenseClick }: Props) {
+export default function DashboardScreen({
+  budget,
+  categories,
+  expenses,
+  onAddClick,
+  onExpenseClick,
+  onTrendClick,
+}: Props) {
   const [range, setRange] = useState<'today' | 'month'>('today')
   const today = getToday()
   const isCurrentMonth = budget.month === getCurrentMonth()
@@ -155,6 +163,16 @@ export default function DashboardScreen({ budget, categories, expenses, onAddCli
             )}
           </div>
         )}
+
+        <button
+          onClick={onTrendClick}
+          className="mt-3 flex w-full items-center justify-between border-t border-black/5 pt-3 text-sm font-semibold text-slate-700"
+        >
+          <span className="flex items-center gap-2">
+            <TrendingUp size={16} /> Daily spending trend
+          </span>
+          <ChevronRight size={16} className="text-slate-400" />
+        </button>
       </div>
 
       {/* EXTRA card */}

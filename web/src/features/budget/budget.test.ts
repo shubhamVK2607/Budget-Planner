@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Expense, MonthBudget } from '../../shared/types'
-import { getDailyLimit, getDailyLimitOn, getExtraBudget, getOverflow, getPool, getRegularBudget } from './budget'
+import { getDailyLimit, getDailyLimitOn, getExtraBudget, getOverflow, getPace, getPool, getRegularBudget } from './budget'
 
 // Oct 2026 = 31 din, pool = 1,00,000 − 75,000 = 25,000
 const base: MonthBudget = {
@@ -106,5 +106,23 @@ describe('getOverflow', () => {
   it('returns the amount over budget', () => {
     const list = [expense(4000, '2026-10-10', 'extra'), expense(3000, '2026-10-12', 'extra')]
     expect(getOverflow(b, list)).toBe(2000)
+  })
+})
+
+describe('getPace', () => {
+  it('is ahead when spending less than allowed so far', () => {
+    const list = [expense(900, '2026-10-01', 'regular')]
+    expect(getPace(base, list, '2026-10-03')).toBe(3 * 806 - 900) // 1518
+  })
+
+  it('is behind when spending more than allowed', () => {
+    const list = [expense(3000, '2026-10-01', 'regular')]
+    expect(getPace(base, list, '2026-10-02')).toBe(2 * 806 - 3000) // -1388
+  })
+
+  it('ignores extra expenses', () => {
+    const b = withExtra('percent', 20) // daily 645, extra budget 5000
+    const list = [expense(4000, '2026-10-01', 'extra')]
+    expect(getPace(b, list, '2026-10-02')).toBe(2 * 645)
   })
 })

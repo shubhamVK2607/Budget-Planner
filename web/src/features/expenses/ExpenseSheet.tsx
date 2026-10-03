@@ -3,12 +3,14 @@ import type { Category, Expense, Kind } from '../../shared/types'
 import { digits } from '../../shared/utils/format'
 import { getToday } from '../../shared/utils/date'
 import { kindOf } from '../../shared/utils/kind'
+import type { QuickTemplate } from './recent'
 
 type Props = {
   categories: Category[]
   defaultCategoryIds: Record<Kind, string>
   defaultDate?: string
   initial?: Expense
+  quickAdd?: QuickTemplate[]
   onSave: (fields: Omit<Expense, 'id'>) => void
   onDelete?: () => void
   onClose: () => void
@@ -19,6 +21,7 @@ export default function ExpenseSheet({
   defaultCategoryIds,
   defaultDate,
   initial,
+  quickAdd = [],
   onSave,
   onDelete,
   onClose,
@@ -39,6 +42,13 @@ export default function ExpenseSheet({
     setCategoryId(defaultCategoryIds[next])
   }
 
+  const applyTemplate = (t: QuickTemplate) => {
+    setKind(t.kind)
+    setCategoryId(t.categoryId)
+    setAmount(String(t.amount))
+    setNote(t.note ?? '')
+  }
+
   const save = () =>
     onSave({
       amount: Number(amount),
@@ -53,20 +63,37 @@ export default function ExpenseSheet({
   return (
     <div className="fixed inset-0 z-20 flex items-end bg-black/40" onClick={onClose}>
       <div
-        className="mx-auto w-full max-w-[480px] pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
+        className="mx-auto w-full max-w-[480px] rounded-t-3xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-bold">{initial ? 'Edit expense' : 'Add expense'}</h2>
-          <button className="text-slate-400 cursor-pointer" onClick={onClose}>✕</button>
+          <button className="text-slate-400" onClick={onClose}>✕</button>
         </div>
+
+        {!initial && quickAdd.length > 0 && (
+          <div className="mb-4">
+            <div className="mb-1 text-xs font-medium text-slate-400">RECENT</div>
+            <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
+              {quickAdd.map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => applyTemplate(t)}
+                  className="shrink-0 rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-700 active:bg-indigo-50"
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="mb-4 flex rounded-xl bg-slate-100 p-1 text-sm font-semibold">
           {(['regular', 'extra'] as const).map((k) => (
             <button
               key={k}
               onClick={() => switchKind(k)}
-              className={`flex-1 cursor-pointer rounded-lg py-2 ${kind === k ? 'bg-white shadow-sm' : 'text-slate-500'}`}
+              className={`flex-1 rounded-lg py-2 ${kind === k ? 'bg-white shadow-sm' : 'text-slate-500'}`}
             >
               {k === 'regular' ? 'Regular' : 'Extra'}
             </button>
@@ -87,7 +114,7 @@ export default function ExpenseSheet({
             <button
               key={c.id}
               onClick={() => setCategoryId(c.id)}
-              className={`rounded-full cursor-pointer px-4 py-2 text-sm font-medium ${
+              className={`rounded-full px-4 py-2 text-sm font-medium ${
                 categoryId === c.id ? chipActive : 'bg-slate-100 text-slate-700'
               }`}
             >
@@ -114,7 +141,7 @@ export default function ExpenseSheet({
         <button
           disabled={!Number(amount) || !date || !categoryId}
           onClick={save}
-          className="mt-5 w-full cursor-pointer rounded-xl bg-indigo-600 py-4 text-lg font-semibold text-white disabled:bg-slate-300"
+          className="mt-5 w-full rounded-xl bg-indigo-600 py-4 text-lg font-semibold text-white disabled:bg-slate-300"
         >
           Save
         </button>
@@ -124,7 +151,7 @@ export default function ExpenseSheet({
             onClick={() => {
               if (window.confirm('Delete this expense?')) onDelete()
             }}
-            className="mt-2 w-full cursor-pointer py-3 font-medium text-red-600"
+            className="mt-2 w-full py-3 font-medium text-red-600"
           >
             Delete
           </button>

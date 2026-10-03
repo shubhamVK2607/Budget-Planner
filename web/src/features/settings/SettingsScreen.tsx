@@ -1,23 +1,29 @@
 import type { Category, Kind, MonthBudget } from '../../shared/types'
+import type { AppData } from '../../services/storage'
 import { rupee } from '../../shared/utils/format'
 import { formatMonth } from '../../shared/utils/date'
 import { getDailyLimit, getExtraBudget, getTotalFixed } from '../budget/budget'
 import CategoryManager from './CategoryManager'
+import BackupSection from './BackupSection'
 
 type Props = {
   budget: MonthBudget
   categories: Category[]
+  data: AppData
   onEditBudget: () => void
   onAddCategory: (name: string, kind: Kind) => void
   onToggleArchive: (id: string) => void
+  onImport: (data: AppData) => void
 }
 
 export default function SettingsScreen({
   budget,
   categories,
+  data,
   onEditBudget,
   onAddCategory,
   onToggleArchive,
+  onImport,
 }: Props) {
   return (
     <div className="p-5">
@@ -33,11 +39,13 @@ export default function SettingsScreen({
         <div className="flex justify-between"><span>Daily limit</span><b>{rupee(getDailyLimit(budget))}</b></div>
         <button
           onClick={onEditBudget}
-          className="mt-3 cursor-pointer w-full rounded-xl border border-indigo-600 py-2 font-semibold text-indigo-600"
+          className="mt-3 w-full rounded-xl border border-indigo-600 py-2 font-semibold text-indigo-600"
         >
           Edit budget
         </button>
       </div>
+
+      <BackupSection data={data} onImport={onImport} />
 
       <CategoryManager
         title="REGULAR CATEGORIES (daily spending)"

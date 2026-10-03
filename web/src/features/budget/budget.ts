@@ -121,3 +121,17 @@ export function getOverflow(budget: MonthBudget, expenses: Expense[]): number {
     .reduce((sum, e) => sum + e.amount, 0)
   return Math.max(0, extraSpent - getExtraBudget(budget))
 }
+
+// Mahine ke ab tak ke allowed Regular kharch minus asli kharch.
+// Positive = plan se aage (kam kharch hua), negative = peeche.
+export function getPace(budget: MonthBudget, expenses: Expense[], upToDate: string): number {
+  const lastDay = Math.min(dayOf(upToDate), getDaysInMonth(budget.month))
+  let allowed = 0
+  for (let d = 1; d <= lastDay; d++) {
+    allowed += getDailyLimitOn(budget, expenses, `${budget.month}-${String(d).padStart(2, '0')}`)
+  }
+  const spent = expenses
+    .filter((e) => e.kind !== 'extra' && e.date.startsWith(budget.month) && e.date <= upToDate)
+    .reduce((sum, e) => sum + e.amount, 0)
+  return Math.round(allowed - spent)
+}

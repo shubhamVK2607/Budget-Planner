@@ -9,3 +9,7 @@ body {
     background: #e2e8f0;
   }
 }
+
+button:not(:disabled) {
+  cursor: pointer;
+}

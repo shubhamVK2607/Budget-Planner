@@ -3,6 +3,7 @@ import { useAppData } from '../hooks/useAppData'
 import { copyBudget, findPreviousBudget, getCurrentMonth } from '../features/budget/budget'
 import { getOverflowNotice } from '../features/budget/overflowNotice'
 import { forMonth } from '../features/expenses/expenses'
+import { getQuickTemplates } from '../features/expenses/recent'
 import { shiftMonth } from '../shared/utils/date'
 import { kindOf } from '../shared/utils/kind'
 import BottomNav from '../shared/components/BottomNav'
@@ -10,6 +11,7 @@ import type { Tab } from '../shared/components/BottomNav'
 import NoticeDialog from '../shared/components/NoticeDialog'
 import SetupScreen from '../features/setup/SetupScreen'
 import DashboardScreen from '../features/dashboard/DashboardScreen'
+import TrendScreen from '../features/trend/TrendScreen'
 import CalendarScreen from '../features/calendar/CalendarScreen'
 import CategoriesScreen from '../features/categories/CategoriesScreen'
 import SettingsScreen from '../features/settings/SettingsScreen'
@@ -25,6 +27,7 @@ function App() {
   const current = getCurrentMonth()
   const [viewMonth, setViewMonth] = useState(current)
   const [tab, setTab] = useState<Tab>('home')
+  const [trendOpen, setTrendOpen] = useState(false)
   const [editingBudget, setEditingBudget] = useState(false)
   const [startFresh, setStartFresh] = useState(false)
   const [sheet, setSheet] = useState<SheetState | null>(null)
@@ -42,6 +45,11 @@ function App() {
     setViewMonth(month)
     setStartFresh(false)
     setEditingBudget(false)
+  }
+
+  const changeTab = (next: Tab) => {
+    setTab(next)
+    setTrendOpen(false)
   }
 
   const saveBudget = (b: MonthBudget) => {
@@ -89,6 +97,7 @@ function App() {
     regular: pickDefault('regular'),
     extra: pickDefault('extra'),
   }
+  const quickAdd = getQuickTemplates(data.expenses, data.categories)
 
   const header = (
     <MonthHeader
@@ -143,15 +152,24 @@ function App() {
       <>
         {tab !== 'settings' && header}
         <div className="flex-1 pb-[calc(7rem+env(safe-area-inset-bottom))]">
-          {tab === 'home' && (
-            <DashboardScreen
-              budget={budget}
-              categories={data.categories}
-              expenses={data.expenses}
-              onAddClick={() => setSheet({})}
-              onExpenseClick={(expense) => setSheet({ expense })}
-            />
-          )}
+          {tab === 'home' &&
+            (trendOpen ? (
+              <TrendScreen
+                key={viewMonth}
+                budget={budget}
+                expenses={data.expenses}
+                onBack={() => setTrendOpen(false)}
+              />
+            ) : (
+              <DashboardScreen
+                budget={budget}
+                categories={data.categories}
+                expenses={data.expenses}
+                onAddClick={() => setSheet({})}
+                onExpenseClick={(expense) => setSheet({ expense })}
+                onTrendClick={() => setTrendOpen(true)}
+              />
+            ))}
           {tab === 'calendar' && (
             <CalendarScreen
               key={viewMonth}
@@ -173,19 +191,25 @@ function App() {
             <SettingsScreen
               budget={budget}
               categories={data.categories}
+              data={data}
               onEditBudget={() => setEditingBudget(true)}
               onAddCategory={addCategory}
               onToggleArchive={toggleArchive}
+              onImport={(imported) => {
+                setData(imported)
+                setViewMonth(current)
+              }}
             />
           )}
         </div>
-        <BottomNav active={tab} onChange={setTab} />
+        <BottomNav active={tab} onChange={changeTab} />
         {sheet && (
           <ExpenseSheet
             categories={data.categories}
             defaultCategoryIds={defaultCategoryIds}
             defaultDate={sheet.date}
             initial={sheet.expense}
+            quickAdd={quickAdd}
             onSave={saveExpense}
             onDelete={sheet.expense ? deleteExpense : undefined}
             onClose={() => setSheet(null)}

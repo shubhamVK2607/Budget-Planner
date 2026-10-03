@@ -17,7 +17,7 @@ const makeDefaults = (kind: Kind): Category[] =>
   DEFAULT_NAMES[kind].map((name) => ({ id: crypto.randomUUID(), name, kind }))
 
 // Purana data ko naye format me laata hai (jaise Extra categories add karna)
-function migrate(data: AppData): AppData {
+export function migrate(data: AppData): AppData {
   const hasExtra = data.categories.some((c) => c.kind === 'extra')
   if (hasExtra) return data
   return { ...data, categories: [...data.categories, ...makeDefaults('extra')] }
