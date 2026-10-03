@@ -33,7 +33,7 @@ export default function SettingsScreen({
         <div className="flex justify-between"><span>Daily limit</span><b>{rupee(getDailyLimit(budget))}</b></div>
         <button
           onClick={onEditBudget}
-          className="mt-3 w-full rounded-xl border border-indigo-600 py-2 font-semibold text-indigo-600"
+          className="mt-3 cursor-pointer w-full rounded-xl border border-indigo-600 py-2 font-semibold text-indigo-600"
         >
           Edit budget
         </button>

@@ -19,7 +19,7 @@ export default function BottomNav({ active, onChange }: Props) {
         <button
           key={id}
           onClick={() => onChange(id)}
-          className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium ${
+          className={`flex flex-1 flex-col items-center cursor-pointer gap-0.5 py-2 text-xs font-medium ${
             active === id ? 'text-indigo-600' : 'text-slate-400'
           }`}
         >

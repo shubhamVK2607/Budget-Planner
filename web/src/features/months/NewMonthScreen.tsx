@@ -26,12 +26,12 @@ export default function NewMonthScreen({ month, previous, onCopy, onFresh }: Pro
           <span>Fixed expenses</span>
           <b>{rupee(getTotalFixed(previous))}</b>
         </div>
-        <button onClick={onCopy} className="mt-4 w-full rounded-xl bg-indigo-600 py-3 font-semibold text-white">
+        <button onClick={onCopy} className="mt-4 w-full rounded-xl cursor-pointer bg-indigo-600 py-3 font-semibold text-white">
           Copy budget
         </button>
       </div>
 
-      <button onClick={onFresh} className="mt-3 w-full rounded-xl border border-slate-300 py-3 font-semibold">
+      <button onClick={onFresh} className="mt-3 w-full rounded-xl cursor-pointer border border-slate-300 py-3 font-semibold">
         Start fresh
       </button>
     </div>

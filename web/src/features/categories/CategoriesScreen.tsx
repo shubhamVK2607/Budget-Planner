@@ -30,7 +30,7 @@ export default function CategoriesScreen({ categories, monthExpenses, onExpenseC
 
     return (
       <div className="p-5">
-        <button className="mb-3 flex items-center gap-1 text-slate-500" onClick={() => setSelectedId(null)}>
+        <button className="mb-3 cursor-pointer flex items-center gap-1 text-slate-500" onClick={() => setSelectedId(null)}>
           <ArrowLeft size={18} /> All categories
         </button>
         <div className="text-sm font-medium text-slate-500">{kindOf(selected).toUpperCase()}</div>
@@ -74,18 +74,20 @@ export default function CategoriesScreen({ categories, monthExpenses, onExpenseC
             <div className="divide-y divide-slate-100 rounded-2xl border border-slate-100">
               {rows.map((c) => {
                 const total = totals[c.id] ?? 0
+                const hasExpenses = monthExpenses.some((e) => e.categoryId === c.id)
                 const percent = kindTotal > 0 ? Math.round((total / kindTotal) * 100) : 0
                 return (
                   <button
                     key={c.id}
+                    disabled={!hasExpenses}
                     onClick={() => setSelectedId(c.id)}
-                    className="flex w-full items-center justify-between px-4 py-3 text-left"
+                    className={`flex w-full items-center justify-between px-4 py-3 text-left ${hasExpenses ? 'cursor-pointer' : 'cursor-not-allowed'}`}
                   >
                     <span className={total > 0 ? '' : 'text-slate-400'}>{c.name}</span>
                     <span className="flex items-center gap-2">
                       {total > 0 && <span className="text-xs text-slate-400">{percent}%</span>}
                       <b className={total > 0 ? '' : 'font-medium text-slate-300'}>{rupee(total)}</b>
-                      <ChevronRight size={18} className="text-slate-300" />
+                      {hasExpenses && <ChevronRight size={18} className="text-slate-300" />}
                     </span>
                   </button>
                 )

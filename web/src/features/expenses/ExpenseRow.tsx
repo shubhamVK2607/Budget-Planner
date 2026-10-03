@@ -15,7 +15,7 @@ export default function ExpenseRow({ expense, categoryName, showDate = false, on
     .join(' · ')
 
   return (
-    <button onClick={onClick} className="flex w-full items-center justify-between px-4 py-3 text-left">
+    <button onClick={onClick} className="flex cursor-pointer w-full items-center justify-between px-4 py-3 text-left">
       <div>
         <div className="flex items-center gap-2">
           <span>{expense.note || categoryName}</span>

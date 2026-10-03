@@ -43,7 +43,7 @@ export default function IncomeStep({ value, onChange, onNext }: Props) {
             <button
               key={n}
               onClick={() => add(n)}
-              className="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 active:scale-95 active:bg-indigo-100"
+              className="rounded-full cursor-pointer bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 active:scale-95 active:bg-indigo-100"
             >
               + {rupee(n)}
             </button>
@@ -51,7 +51,7 @@ export default function IncomeStep({ value, onChange, onNext }: Props) {
           {amount > 0 && (
             <button
               onClick={() => onChange('')}
-              className="rounded-full px-4 py-2 text-sm font-medium text-slate-400 active:scale-95"
+              className="rounded-full px-4 py-2 text-sm font-medium cursor-pointer text-slate-400 active:scale-95"
             >
               Clear
             </button>
@@ -69,7 +69,7 @@ export default function IncomeStep({ value, onChange, onNext }: Props) {
       <button
         disabled={amount <= 0}
         onClick={onNext}
-        className="w-full rounded-xl bg-indigo-600 py-4 text-lg font-semibold text-white disabled:bg-slate-300"
+        className="w-full rounded-xl cursor-pointer bg-indigo-600 py-4 text-lg font-semibold text-white disabled:bg-slate-300"
       >
         Next
       </button>

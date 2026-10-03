@@ -75,7 +75,7 @@ export default function CalendarScreen({ budget, categories, expenses, onAddClic
               key={date}
               disabled={isFuture}
               onClick={() => setSelected(date)}
-              className={`relative flex aspect-square flex-col items-center justify-center rounded-xl text-sm font-semibold ${style} ${
+              className={`relative ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer'} flex aspect-square flex-col items-center justify-center rounded-xl text-sm font-semibold ${style} ${
                 selected === date ? 'ring-2 ring-indigo-600' : ''
               } ${date === today ? 'underline underline-offset-2' : ''}`}
             >
@@ -89,7 +89,7 @@ export default function CalendarScreen({ budget, categories, expenses, onAddClic
         })}
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+      <div className="mt-3 flex flex-wrap items-center gap-x-10 gap-y-1 text-xs text-slate-500">
         <span>🟩 Within limit</span>
         <span>🟨 Close to limit</span>
         <span>🟥 Over limit</span>
@@ -116,7 +116,7 @@ export default function CalendarScreen({ budget, categories, expenses, onAddClic
             {canAdd && (
               <button
                 onClick={() => onAddClick(selected)}
-                className="flex items-center gap-1 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"
+                className="flex items-center gap-1 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white cursor-pointer"
               >
                 <Plus size={16} /> Add
               </button>

@@ -94,7 +94,7 @@ export default function SetupScreen({ month, initial, onDone, onCancel }: Props)
   return (
     <div className="flex min-h-screen flex-col p-5">
       {onCancel && (
-        <button className="mb-3 self-start text-slate-500" onClick={onCancel}>
+        <button className="mb-3 cursor-pointer self-start text-slate-500" onClick={onCancel}>
           ← Cancel
         </button>
       )}
@@ -119,7 +119,7 @@ export default function SetupScreen({ month, initial, onDone, onCancel }: Props)
                   <span className="flex items-center gap-3">
                     <b>{rupee(item.amount)}</b>
                     <button
-                      className="text-slate-400"
+                      className="text cursor-pointer-slate-400"
                       onClick={() => setFixedItems(fixedItems.filter((f) => f.id !== item.id))}
                     >
                       ✕
@@ -139,7 +139,7 @@ export default function SetupScreen({ month, initial, onDone, onCancel }: Props)
                     setName(s)
                     amountRef.current?.focus()
                   }}
-                  className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+                  className={`rounded-full cursor-pointer px-3 py-1.5 text-sm font-medium ${
                     name === s ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700'
                   }`}
                 >
@@ -169,7 +169,7 @@ export default function SetupScreen({ month, initial, onDone, onCancel }: Props)
           <button
             disabled={!pendingItem}
             onClick={commitPending}
-            className="mt-2 w-full rounded-xl border border-indigo-600 py-3 font-semibold text-indigo-600 disabled:border-slate-200 disabled:text-slate-300"
+            className="mt-2 w-full cursor-pointer rounded-xl border border-indigo-600 py-3 font-semibold text-indigo-600 disabled:border-slate-200 disabled:text-slate-300"
           >
             + Add
           </button>
@@ -209,7 +209,7 @@ export default function SetupScreen({ month, initial, onDone, onCancel }: Props)
                     <button
                       key={m}
                       onClick={() => switchExtraMode(m)}
-                      className={`rounded-lg px-4 py-1 ${extraMode === m ? 'bg-white shadow-sm' : 'text-slate-500'}`}
+                      className={`rounded-lg px-4 py-1 ${extraMode === m ? 'bg-white shadow-sm' : 'text-slate-500 cursor-pointer'}`}
                     >
                       {m === 'percent' ? '%' : '₹'}
                     </button>
@@ -228,7 +228,7 @@ export default function SetupScreen({ month, initial, onDone, onCancel }: Props)
                   {extraMode === 'percent' ? 'Cannot be more than 100%' : `Cannot be more than ${rupee(pool)}`}
                 </p>
               )}
-              <button className="mt-3 self-start text-sm font-medium text-indigo-600" onClick={switchToManual}>
+              <button className="mt-3 cursor-pointer self-start text-sm font-medium text-indigo-600" onClick={switchToManual}>
                 I'd rather set my daily limit myself
               </button>
             </>
@@ -246,7 +246,7 @@ export default function SetupScreen({ month, initial, onDone, onCancel }: Props)
               {Number(manual) > maxDailyLimit && (
                 <p className="mt-1 text-red-600">Limit cannot exceed {rupee(maxDailyLimit)}</p>
               )}
-              <button className="mt-3 self-start text-sm font-medium text-indigo-600" onClick={() => setMode('auto')}>
+              <button className="mt-3 cursor-pointer self-start text-sm font-medium text-indigo-600" onClick={() => setMode('auto')}>
                 Set the extra budget instead
               </button>
             </>

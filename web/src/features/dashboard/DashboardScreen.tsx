@@ -11,7 +11,9 @@ import {
   getOverflow,
   getRegularBudget,
   getStatus,
+  getTotalFixed,
 } from '../budget/budget'
+import type { Status } from '../budget/budget'
 import { forDate, forMonth, ofKind, sumAmount } from '../expenses/expenses'
 import ExpenseRow from '../expenses/ExpenseRow'
 
@@ -23,10 +25,22 @@ type Props = {
   onExpenseClick: (expense: Expense) => void
 }
 
-const statusStyle = {
-  green: { card: 'border-emerald-200 bg-emerald-50', bar: 'bg-emerald-500', text: 'text-emerald-700', label: 'On track' },
-  yellow: { card: 'border-amber-200 bg-amber-50', bar: 'bg-amber-400', text: 'text-amber-700', label: 'Close to limit' },
-  red: { card: 'border-red-200 bg-red-50', bar: 'bg-red-500', text: 'text-red-700', label: 'Over limit' },
+const statusStyle: Record<Status, { card: string; bar: string; text: string }> = {
+  green: { card: 'border-emerald-200 bg-emerald-50', bar: 'bg-emerald-500', text: 'text-emerald-700' },
+  yellow: { card: 'border-amber-200 bg-amber-50', bar: 'bg-amber-400', text: 'text-amber-700' },
+  red: { card: 'border-red-200 bg-red-50', bar: 'bg-red-500', text: 'text-red-700' },
+}
+
+const regularLabel: Record<Status, string> = {
+  green: 'On track',
+  yellow: 'Close to limit',
+  red: 'Over limit',
+}
+
+const extraLabel: Record<Status, string> = {
+  green: 'On track',
+  yellow: 'Close to budget',
+  red: 'Over budget',
 }
 
 const percentOf = (spent: number, total: number) =>
@@ -45,95 +59,125 @@ export default function DashboardScreen({ budget, categories, expenses, onAddCli
       ? [...todayExpenses].reverse()
       : [...monthExpenses].sort((a, b) => b.date.localeCompare(a.date))
 
-  // Today card: sirf Regular kharche
+  // Today (sirf Regular)
   const todaySpent = sumAmount(ofKind(todayExpenses, 'regular'))
   const baseLimit = getDailyLimit(budget)
   const todayLimit = isCurrentMonth ? getDailyLimitOn(budget, expenses, today) : baseLimit
-  const status = getStatus(todaySpent, todayLimit)
-  const style = statusStyle[status]
+  const todayStatus = getStatus(todaySpent, todayLimit)
 
-  // Regular month bar (overflow hone par regular budget kam ho jata hai)
+  // Month: Regular
   const regularSpent = sumAmount(ofKind(monthExpenses, 'regular'))
-  const extraSpent = sumAmount(ofKind(monthExpenses, 'extra'))
-  const extraBudget = getExtraBudget(budget)
   const overflow = getOverflow(budget, expenses)
   const regularBudget = Math.max(0, getRegularBudget(budget) - overflow)
+  const regularMonthStatus = getStatus(regularSpent, regularBudget)
+  const regularCardStatus = isCurrentMonth ? todayStatus : regularMonthStatus
+
+  // Month: Extra
+  const extraSpent = sumAmount(ofKind(monthExpenses, 'extra'))
+  const extraBudget = getExtraBudget(budget)
+  const extraStatus = getStatus(extraSpent, extraBudget)
   const extraOver = extraSpent > extraBudget
+
+  // Month summary (Fixed + Regular + Extra)
+  const fixedTotal = getTotalFixed(budget)
+  const totalSpent = fixedTotal + regularSpent + extraSpent
+  const scale = Math.max(budget.income, totalSpent, 1)
+  const remaining = budget.income - totalSpent
 
   const catName = (id: string) => categories.find((c) => c.id === id)?.name ?? 'Unknown'
 
+  const rs = statusStyle[regularCardStatus]
+  const ms = statusStyle[regularMonthStatus]
+  const es = statusStyle[extraStatus]
+
   return (
     <div className="space-y-4 p-5">
-      {/* Today card (sirf current month) */}
-      {isCurrentMonth && (
-        <div className={`rounded-2xl border p-5 ${style.card}`}>
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-slate-500">TODAY · Regular</span>
-            <span className={`rounded-full bg-white px-3 py-1 text-xs font-semibold ${style.text}`}>
-              {style.label}
-            </span>
-          </div>
-          <div className="mt-2 text-3xl font-bold">
-            {rupee(todaySpent)}{' '}
-            <span className="text-lg font-medium text-slate-400">/ {rupee(todayLimit)}</span>
-          </div>
-          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white">
-            <div
-              className={`h-full rounded-full ${style.bar}`}
-              style={{ width: `${percentOf(todaySpent, todayLimit)}%` }}
-            />
-          </div>
-          <div className={`mt-2 text-sm font-medium ${style.text}`}>
-            {todaySpent <= todayLimit
-              ? `${rupee(todayLimit - todaySpent)} left today`
-              : `${rupee(todaySpent - todayLimit)} over today's limit`}
-          </div>
-          {todayLimit < baseLimit && (
-            <div className="mt-1 text-xs text-slate-500">
-              Reduced from {rupee(baseLimit)} because extra expenses went over budget.
-            </div>
-          )}
+      {/* This month: chhota summary */}
+      <div className="rounded-2xl bg-slate-50 px-4 py-3">
+        <div className="flex items-baseline justify-between text-sm">
+          <span className="font-medium text-slate-500">THIS MONTH</span>
+          <span>
+            <b>{rupee(totalSpent)}</b>
+            <span className="text-slate-400"> of {rupee(budget.income)}</span>
+          </span>
         </div>
-      )}
-
-      {/* Regular this month */}
-      <div className="rounded-2xl bg-slate-50 p-5">
-        <div className="text-sm font-medium text-slate-500">THIS MONTH · Regular</div>
-        <div className="mt-1 text-xl font-bold">
-          {rupee(regularSpent)}{' '}
-          <span className="text-base font-medium text-slate-400">/ {rupee(regularBudget)}</span>
+        <div className="mt-2 flex h-2 overflow-hidden rounded-full bg-slate-200">
+          <div className="bg-slate-400" style={{ width: `${(fixedTotal / scale) * 100}%` }} />
+          <div className="bg-indigo-500" style={{ width: `${(regularSpent / scale) * 100}%` }} />
+          <div className="bg-amber-500" style={{ width: `${(extraSpent / scale) * 100}%` }} />
         </div>
-        <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-200">
-          <div
-            className={`h-full rounded-full ${regularSpent > regularBudget ? 'bg-red-500' : 'bg-indigo-600'}`}
-            style={{ width: `${percentOf(regularSpent, regularBudget)}%` }}
-          />
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-slate-500">
+          <span className="flex items-center gap-1">
+            <span className="h-2 w-2 rounded-full bg-slate-400" /> Fixed {rupee(fixedTotal)}
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="h-2 w-2 rounded-full bg-indigo-500" /> Regular {rupee(regularSpent)}
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="h-2 w-2 rounded-full bg-amber-500" /> Extra {rupee(extraSpent)}
+          </span>
+        </div>
+        <div className={`mt-1 text-xs font-medium ${remaining >= 0 ? 'text-slate-500' : 'text-red-600'}`}>
+          {remaining >= 0 ? `${rupee(remaining)} left of income` : `${rupee(-remaining)} over income`}
         </div>
       </div>
 
-      {/* Extra card */}
-      <div className={`rounded-2xl border p-5 ${extraOver ? 'border-red-200 bg-red-50' : 'border-amber-200 bg-amber-50'}`}>
+      {/* REGULAR card: Today + This month */}
+      <div className={`rounded-2xl border p-5 ${rs.card}`}>
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-slate-500">THIS MONTH · Extra</span>
-          {extraOver && (
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-red-700">Over budget</span>
-          )}
+          <span className="text-sm font-bold tracking-wide text-slate-700">REGULAR</span>
+          <span className={`rounded-full bg-white px-3 py-1 text-xs font-semibold ${rs.text}`}>
+            {regularLabel[regularCardStatus]}
+          </span>
         </div>
-        <div className="mt-1 text-xl font-bold">
+
+        {isCurrentMonth && (
+          <div className="mt-3">
+            <div className="text-xs font-medium text-slate-500">TODAY</div>
+            <div className="mt-1 text-3xl font-bold">
+              {rupee(todaySpent)}{' '}
+              <span className="text-lg font-medium text-slate-400">/ {rupee(todayLimit)}</span>
+            </div>
+            <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-white">
+              <div
+                className={`h-full rounded-full ${statusStyle[todayStatus].bar}`}
+                style={{ width: `${percentOf(todaySpent, todayLimit)}%` }}
+              />
+            </div>
+            <div className={`mt-2 text-sm font-medium ${rs.text}`}>
+              {todaySpent <= todayLimit
+                ? `${rupee(todayLimit - todaySpent)} left today`
+                : `${rupee(todaySpent - todayLimit)} over today's limit`}
+            </div>
+            {todayLimit < baseLimit && (
+              <div className="mt-1 text-xs text-slate-500">
+                Reduced from {rupee(baseLimit)} because extra expenses went over budget.
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* EXTRA card */}
+      <div className={`rounded-2xl border p-5 ${es.card}`}>
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-bold tracking-wide text-slate-700">EXTRA · big expenses</span>
+          <span className={`rounded-full bg-white px-3 py-1 text-xs font-semibold ${es.text}`}>
+            {extraLabel[extraStatus]}
+          </span>
+        </div>
+        <div className="mt-2 text-3xl font-bold">
           {rupee(extraSpent)}{' '}
-          <span className="text-base font-medium text-slate-400">/ {rupee(extraBudget)}</span>
+          <span className="text-lg font-medium text-slate-400">/ {rupee(extraBudget)}</span>
         </div>
-        <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white">
-          <div
-            className={`h-full rounded-full ${extraOver ? 'bg-red-500' : 'bg-amber-500'}`}
-            style={{ width: `${percentOf(extraSpent, extraBudget)}%` }}
-          />
+        <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-white">
+          <div className={`h-full rounded-full ${es.bar}`} style={{ width: `${percentOf(extraSpent, extraBudget)}%` }} />
         </div>
-        <div className={`mt-2 text-sm font-medium ${extraOver ? 'text-red-700' : 'text-amber-700'}`}>
+        <div className={`mt-2 text-sm font-medium ${es.text}`}>
           {extraOver
             ? `${rupee(extraSpent - extraBudget)} over, taken from your regular budget`
             : `${rupee(extraBudget - extraSpent)} left for big expenses`}
-        </div>
+        </div> 
       </div>
 
       {/* Expenses + toggle */}
@@ -146,7 +190,7 @@ export default function DashboardScreen({ budget, categories, expenses, onAddCli
                 <button
                   key={r}
                   onClick={() => setRange(r)}
-                  className={`rounded-lg px-3 py-1 ${range === r ? 'bg-white shadow-sm' : 'text-slate-500'}`}
+                  className={`rounded-lg cursor-pointer px-3 py-1 ${range === r ? 'bg-white shadow-sm' : 'text-slate-500'}`}
                 >
                   {r === 'today' ? 'Today' : 'This month'}
                 </button>
@@ -179,7 +223,7 @@ export default function DashboardScreen({ budget, categories, expenses, onAddCli
         <div className="pointer-events-none fixed bottom-20 left-1/2 z-10 flex w-full max-w-[480px] -translate-x-1/2 justify-end px-5">
           <button
             onClick={onAddClick}
-            className="pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg"
+            className="pointer-events-auto cursor-pointer flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg"
           >
             <Plus size={28} />
           </button>

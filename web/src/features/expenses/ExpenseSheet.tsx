@@ -58,7 +58,7 @@ export default function ExpenseSheet({
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-bold">{initial ? 'Edit expense' : 'Add expense'}</h2>
-          <button className="text-slate-400" onClick={onClose}>✕</button>
+          <button className="text-slate-400 cursor-pointer" onClick={onClose}>✕</button>
         </div>
 
         <div className="mb-4 flex rounded-xl bg-slate-100 p-1 text-sm font-semibold">
@@ -66,7 +66,7 @@ export default function ExpenseSheet({
             <button
               key={k}
               onClick={() => switchKind(k)}
-              className={`flex-1 rounded-lg py-2 ${kind === k ? 'bg-white shadow-sm' : 'text-slate-500'}`}
+              className={`flex-1 cursor-pointer rounded-lg py-2 ${kind === k ? 'bg-white shadow-sm' : 'text-slate-500'}`}
             >
               {k === 'regular' ? 'Regular' : 'Extra (big / one-time)'}
             </button>
@@ -87,7 +87,7 @@ export default function ExpenseSheet({
             <button
               key={c.id}
               onClick={() => setCategoryId(c.id)}
-              className={`rounded-full px-4 py-2 text-sm font-medium ${
+              className={`rounded-full cursor-pointer px-4 py-2 text-sm font-medium ${
                 categoryId === c.id ? chipActive : 'bg-slate-100 text-slate-700'
               }`}
             >
@@ -114,7 +114,7 @@ export default function ExpenseSheet({
         <button
           disabled={!Number(amount) || !date || !categoryId}
           onClick={save}
-          className="mt-5 w-full rounded-xl bg-indigo-600 py-4 text-lg font-semibold text-white disabled:bg-slate-300"
+          className="mt-5 w-full cursor-pointer rounded-xl bg-indigo-600 py-4 text-lg font-semibold text-white disabled:bg-slate-300"
         >
           Save
         </button>
@@ -124,7 +124,7 @@ export default function ExpenseSheet({
             onClick={() => {
               if (window.confirm('Delete this expense?')) onDelete()
             }}
-            className="mt-2 w-full py-3 font-medium text-red-600"
+            className="mt-2 w-full cursor-pointer py-3 font-medium text-red-600"
           >
             Delete
           </button>

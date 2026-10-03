@@ -35,7 +35,7 @@ export default function CategoryManager({ title, kind, categories, onAdd, onTogg
             <button
               disabled={active.length === 1}
               onClick={() => onToggleArchive(c.id)}
-              className="text-sm text-slate-500 disabled:opacity-30"
+              className="text-sm cursor-pointer text-slate-500 disabled:opacity-30"
             >
               Hide
             </button>
@@ -54,7 +54,7 @@ export default function CategoryManager({ title, kind, categories, onAdd, onTogg
         <button
           disabled={!trimmed || duplicate}
           onClick={add}
-          className="rounded-xl bg-indigo-600 px-5 font-semibold text-white disabled:bg-slate-300"
+          className="rounded-xl cursor-pointer bg-indigo-600 px-5 font-semibold text-white disabled:bg-slate-300"
         >
           Add
         </button>
@@ -66,7 +66,7 @@ export default function CategoryManager({ title, kind, categories, onAdd, onTogg
           {hidden.map((c) => (
             <div key={c.id} className="flex items-center justify-between px-4 py-3 text-slate-400">
               <span>{c.name} (hidden)</span>
-              <button onClick={() => onToggleArchive(c.id)} className="text-sm text-indigo-600">
+              <button onClick={() => onToggleArchive(c.id)} className="text-sm cursor-pointer text-indigo-600">
                 Restore
               </button>
             </div>
