@@ -1,21 +1,23 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAppData } from '../hooks/useAppData'
-import { copyBudget, findPreviousBudget, getCurrentMonth } from '../features/budget/budget'
+import { copyBudget, findPreviousBudget } from '../features/budget/budget'
 import { getOverflowNotice } from '../features/budget/overflowNotice'
-import { forMonth } from '../features/expenses/expenses'
 import { getQuickTemplates } from '../features/expenses/recent'
-import { shiftMonth } from '../shared/utils/date'
+import { formatShortDate, getToday, shiftDay, shiftMonthKeepDay } from '../shared/utils/date'
+import { rupee } from '../shared/utils/format'
 import { kindOf } from '../shared/utils/kind'
 import BottomNav from '../shared/components/BottomNav'
 import type { Tab } from '../shared/components/BottomNav'
 import NoticeDialog from '../shared/components/NoticeDialog'
+import Toast from '../shared/components/Toast'
 import SetupScreen from '../features/setup/SetupScreen'
 import DashboardScreen from '../features/dashboard/DashboardScreen'
+import InsightsScreen from '../features/insights/InsightsScreen'
 import TrendScreen from '../features/trend/TrendScreen'
-import CalendarScreen from '../features/calendar/CalendarScreen'
-import CategoriesScreen from '../features/categories/CategoriesScreen'
+import CalendarPopup from '../features/calendar/CalendarPopup'
 import SettingsScreen from '../features/settings/SettingsScreen'
 import ExpenseSheet from '../features/expenses/ExpenseSheet'
+import DateHeader from '../features/months/DateHeader'
 import MonthHeader from '../features/months/MonthHeader'
 import NewMonthScreen from '../features/months/NewMonthScreen'
 import type { Expense, Kind, MonthBudget } from '../shared/types'
@@ -24,27 +26,56 @@ type SheetState = { expense?: Expense; date?: string }
 
 function App() {
   const [data, setData] = useAppData()
-  const current = getCurrentMonth()
-  const [viewMonth, setViewMonth] = useState(current)
+  const today = getToday()
+  const currentMonth = today.slice(0, 7)
+
+  const [viewDate, setViewDate] = useState(getToday)
+  const viewMonth = viewDate.slice(0, 7)
+
   const [tab, setTab] = useState<Tab>('home')
   const [trendOpen, setTrendOpen] = useState(false)
+  const [calendarOpen, setCalendarOpen] = useState(false)
   const [editingBudget, setEditingBudget] = useState(false)
   const [startFresh, setStartFresh] = useState(false)
   const [sheet, setSheet] = useState<SheetState | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ id: number; text: string } | null>(null)
+
+  useEffect(() => {
+    if (!toast) return
+    const timer = setTimeout(() => setToast(null), 2500)
+    return () => clearTimeout(timer)
+  }, [toast])
+
+  const showToast = (text: string) => setToast({ id: Date.now(), text })
 
   const budget = data.budgets[viewMonth]
   const previous = findPreviousBudget(data.budgets, viewMonth)
 
+  // Date navigation: sabse purane budget wale mahine ke 1 tareekh se aaj tak
   const earliest = Object.keys(data.budgets).sort()[0]
-  const minMonth = earliest && earliest < current ? earliest : current
-  const canPrev = viewMonth > minMonth
-  const canNext = viewMonth < shiftMonth(current, 1)
+  const minDate = `${earliest && earliest < currentMonth ? earliest : currentMonth}-01`
 
-  const changeMonth = (month: string) => {
-    setViewMonth(month)
+  const canPrevDay = viewDate > minDate
+  const canNextDay = viewDate < today
+  const canPrevMonth = shiftMonthKeepDay(viewDate, -1) >= minDate
+  const canNextMonth = viewMonth < currentMonth
+
+  const moveTo = (date: string) => {
+    setViewDate(date)
     setStartFresh(false)
     setEditingBudget(false)
+  }
+
+  const goDay = (delta: number) => {
+    const next = shiftDay(viewDate, delta)
+    if (next >= minDate && next <= today) moveTo(next)
+  }
+
+  const goMonth = (delta: number) => {
+    if (delta < 0 ? !canPrevMonth : !canNextMonth) return
+    const next = shiftMonthKeepDay(viewDate, delta)
+    moveTo(next > today ? today : next)
   }
 
   const changeTab = (next: Tab) => {
@@ -65,6 +96,17 @@ function App() {
     setData({ ...data, expenses: nextExpenses })
     setSheet(null)
     setNotice(getOverflowNotice(data.budgets[fields.date.slice(0, 7)], data.expenses, nextExpenses))
+
+    const categoryName = data.categories.find((c) => c.id === fields.categoryId)?.name
+    showToast(
+      [
+        `${editing ? 'Updated' : 'Added'} ${rupee(fields.amount)}`,
+        categoryName,
+        fields.date !== viewDate ? formatShortDate(fields.date) : null,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    )
   }
 
   const deleteExpense = () => {
@@ -72,6 +114,7 @@ function App() {
     if (!editing) return
     setData({ ...data, expenses: data.expenses.filter((e) => e.id !== editing.id) })
     setSheet(null)
+    showToast('Expense deleted')
   }
 
   const addCategory = (name: string, kind: Kind) => {
@@ -99,13 +142,28 @@ function App() {
   }
   const quickAdd = getQuickTemplates(data.expenses, data.categories)
 
-  const header = (
+  const monthHeader = (
     <MonthHeader
       month={viewMonth}
-      canPrev={canPrev}
-      canNext={canNext}
-      onPrev={() => changeMonth(shiftMonth(viewMonth, -1))}
-      onNext={() => changeMonth(shiftMonth(viewMonth, 1))}
+      canPrev={canPrevMonth}
+      canNext={canNextMonth}
+      onPrev={() => goMonth(-1)}
+      onNext={() => goMonth(1)}
+    />
+  )
+
+  const dateHeader = (
+    <DateHeader
+      date={viewDate}
+      canPrevDay={canPrevDay}
+      canNextDay={canNextDay}
+      canPrevMonth={canPrevMonth}
+      canNextMonth={canNextMonth}
+      onPrevDay={() => goDay(-1)}
+      onNextDay={() => goDay(1)}
+      onPrevMonth={() => goMonth(-1)}
+      onNextMonth={() => goMonth(1)}
+      onOpenCalendar={() => setCalendarOpen(true)}
     />
   )
 
@@ -125,7 +183,7 @@ function App() {
     } else {
       content = (
         <>
-          {header}
+          {monthHeader}
           <NewMonthScreen
             month={viewMonth}
             previous={previous}
@@ -150,9 +208,21 @@ function App() {
   } else {
     content = (
       <>
-        {tab !== 'settings' && header}
+        {tab === 'home' && dateHeader}
+        {tab === 'insights' && monthHeader}
+
         <div className="flex-1 pb-[calc(7rem+env(safe-area-inset-bottom))]">
-          {tab === 'home' &&
+          {tab === 'home' && (
+            <DashboardScreen
+              budget={budget}
+              categories={data.categories}
+              expenses={data.expenses}
+              viewDate={viewDate}
+              onAddClick={() => setSheet({ date: viewDate })}
+              onExpenseClick={(expense) => setSheet({ expense })}
+            />
+          )}
+          {tab === 'insights' &&
             (trendOpen ? (
               <TrendScreen
                 key={viewMonth}
@@ -161,32 +231,16 @@ function App() {
                 onBack={() => setTrendOpen(false)}
               />
             ) : (
-              <DashboardScreen
-                budget={budget}
+              <InsightsScreen
+                key={viewMonth}
                 categories={data.categories}
                 expenses={data.expenses}
-                onAddClick={() => setSheet({})}
+                month={viewMonth}
+                today={today}
                 onExpenseClick={(expense) => setSheet({ expense })}
                 onTrendClick={() => setTrendOpen(true)}
               />
             ))}
-          {tab === 'calendar' && (
-            <CalendarScreen
-              key={viewMonth}
-              budget={budget}
-              categories={data.categories}
-              expenses={data.expenses}
-              onAddClick={(date) => setSheet({ date })}
-              onExpenseClick={(expense) => setSheet({ expense })}
-            />
-          )}
-          {tab === 'categories' && (
-            <CategoriesScreen
-              categories={data.categories}
-              monthExpenses={forMonth(data.expenses, viewMonth)}
-              onExpenseClick={(expense) => setSheet({ expense })}
-            />
-          )}
           {tab === 'settings' && (
             <SettingsScreen
               budget={budget}
@@ -197,12 +251,29 @@ function App() {
               onToggleArchive={toggleArchive}
               onImport={(imported) => {
                 setData(imported)
-                setViewMonth(current)
+                moveTo(today)
               }}
             />
           )}
         </div>
+
         <BottomNav active={tab} onChange={changeTab} />
+
+        {calendarOpen && (
+          <CalendarPopup
+            budgets={data.budgets}
+            expenses={data.expenses}
+            selectedDate={viewDate}
+            minDate={minDate}
+            today={today}
+            onSelect={(date) => {
+              moveTo(date)
+              setCalendarOpen(false)
+            }}
+            onClose={() => setCalendarOpen(false)}
+          />
+        )}
+
         {sheet && (
           <ExpenseSheet
             categories={data.categories}
@@ -220,7 +291,12 @@ function App() {
     )
   }
 
-  return <div className="mx-auto flex min-h-screen max-w-[480px] flex-col bg-white">{content}</div>
+  return (
+    <div className="mx-auto flex min-h-screen max-w-[480px] flex-col bg-white">
+      {content}
+      {toast && <Toast key={toast.id} message={toast.text} />}
+    </div>
+  )
 }
 
 export default App

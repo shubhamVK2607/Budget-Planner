@@ -1,12 +1,11 @@
-import { CalendarDays, House, LayoutGrid, Settings } from 'lucide-react'
+import { ChartPie, House, Settings } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
-export type Tab = 'home' | 'calendar' | 'categories' | 'settings'
+export type Tab = 'home' | 'insights' | 'settings'
 
 const tabs: { id: Tab; label: string; Icon: LucideIcon }[] = [
   { id: 'home', label: 'Home', Icon: House },
-  { id: 'calendar', label: 'Calendar', Icon: CalendarDays },
-  { id: 'categories', label: 'Categories', Icon: LayoutGrid },
+  { id: 'insights', label: 'Insights', Icon: ChartPie },
   { id: 'settings', label: 'Settings', Icon: Settings },
 ]
 
@@ -19,7 +18,7 @@ export default function BottomNav({ active, onChange }: Props) {
         <button
           key={id}
           onClick={() => onChange(id)}
-          className={`flex flex-1 flex-col items-center cursor-pointer gap-0.5 py-2 text-xs font-medium ${
+          className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium ${
             active === id ? 'text-indigo-600' : 'text-slate-400'
           }`}
         >
