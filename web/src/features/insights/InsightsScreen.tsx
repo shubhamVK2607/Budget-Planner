@@ -4,6 +4,7 @@ import type { Category, Expense, Kind } from '../../shared/types'
 import { rupee } from '../../shared/utils/format'
 import { formatMonth } from '../../shared/utils/date'
 import { kindOf } from '../../shared/utils/kind'
+import { useI18n } from '../../shared/i18n/context'
 import ListDialog from '../../shared/components/ListDialog'
 import ExpenseRow from '../expenses/ExpenseRow'
 import { getCategoryInsights } from './insights'
@@ -21,10 +22,12 @@ type Props = {
 function Donut({
   slices,
   total,
+  centerLabel,
   onSelect,
 }: {
   slices: CategorySlice[]
   total: number
+  centerLabel: string
   onSelect: (id: string) => void
 }) {
   const r = 44
@@ -33,7 +36,7 @@ function Donut({
 
   return (
     <svg viewBox="0 0 120 120" className="mx-auto h-48 w-48">
-      <circle cx={60} cy={60} r={r} fill="none" stroke="#f1f5f9" strokeWidth={16} />
+      <circle cx={60} cy={60} r={r} fill="none" strokeWidth={16} className="stroke-slate-100" />
       {slices.map((s) => {
         const len = s.share * circumference
         const circle = (
@@ -55,10 +58,10 @@ function Donut({
         offset += len
         return circle
       })}
-      <text x={60} y={56} textAnchor="middle" fontSize={7} fill="#64748b">
-        This month
+      <text x={60} y={56} textAnchor="middle" fontSize={7} className="fill-slate-500">
+        {centerLabel}
       </text>
-      <text x={60} y={69} textAnchor="middle" fontSize={11} fontWeight={700} fill="#0f172a">
+      <text x={60} y={69} textAnchor="middle" fontSize={11} fontWeight={700} className="fill-slate-900">
         {rupee(total)}
       </text>
     </svg>
@@ -66,9 +69,10 @@ function Donut({
 }
 
 function Change({ slice }: { slice: CategorySlice }) {
-  if (slice.isNew) return <span className="text-xs text-slate-400">New</span>
+  const { t } = useI18n()
+  if (slice.isNew) return <span className="text-xs text-slate-400">{t.common.new}</span>
   if (slice.change === null) return null
-  if (slice.change === 0) return <span className="text-xs text-slate-400">No change</span>
+  if (slice.change === 0) return <span className="text-xs text-slate-400">{t.common.noChange}</span>
   const up = slice.change > 0
   return (
     <span className={`text-xs font-medium ${up ? 'text-red-600' : 'text-emerald-600'}`}>
@@ -78,6 +82,7 @@ function Change({ slice }: { slice: CategorySlice }) {
 }
 
 export default function InsightsScreen({ categories, expenses, month, today, onExpenseClick, onTrendClick }: Props) {
+  const { t, locale, catName } = useI18n()
   const [kind, setKind] = useState<Kind>('regular')
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
@@ -89,6 +94,12 @@ export default function InsightsScreen({ categories, expenses, month, today, onE
         .sort((a, b) => b.date.localeCompare(a.date))
     : []
 
+  const labelOf = (s: CategorySlice) => {
+    const category = categories.find((c) => c.id === s.id)
+    return category ? catName(category) : s.name
+  }
+  const monthLabel = formatMonth(month, locale)
+
   return (
     <div className="space-y-4 p-5">
       <div className="flex rounded-xl bg-slate-100 p-1 text-sm font-semibold">
@@ -98,21 +109,19 @@ export default function InsightsScreen({ categories, expenses, month, today, onE
             onClick={() => setKind(k)}
             className={`flex-1 rounded-lg py-2 ${kind === k ? 'bg-white shadow-sm' : 'text-slate-500'}`}
           >
-            {k === 'regular' ? 'Regular' : 'Extra'}
+            {k === 'regular' ? t.common.regular : t.common.extra}
           </button>
         ))}
       </div>
 
       {slices.length === 0 ? (
-        <p className="rounded-2xl bg-slate-50 p-5 text-center text-slate-400">
-          No {kind} expenses in {formatMonth(month)}
-        </p>
+        <p className="rounded-2xl bg-slate-50 p-5 text-center text-slate-400">{t.insights.empty(kind, monthLabel)}</p>
       ) : (
         <>
-          <Donut slices={slices} total={total} onSelect={setSelectedId} />
+          <Donut slices={slices} total={total} centerLabel={t.insights.centerLabel} onSelect={setSelectedId} />
 
           <div>
-            <div className="mb-2 text-sm font-medium text-slate-500">THIS MONTH · BY CATEGORY</div>
+            <div className="mb-2 text-sm font-medium text-slate-500">{t.insights.byCategory}</div>
             <div className="max-h-[19rem] divide-y divide-slate-100 overflow-y-auto overscroll-contain rounded-2xl border border-slate-100">
               {slices.map((s) => (
                 <button
@@ -122,9 +131,9 @@ export default function InsightsScreen({ categories, expenses, month, today, onE
                 >
                   <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: s.color }} />
                   <span className="flex-1">
-                    <span className="block">{s.name}</span>
+                    <span className="block">{labelOf(s)}</span>
                     <span className="block text-xs text-slate-400">
-                      {Math.round(s.share * 100)}% of {kind} spending
+                      {t.insights.share(Math.round(s.share * 100), kind)}
                     </span>
                   </span>
                   <span className="text-right">
@@ -135,11 +144,7 @@ export default function InsightsScreen({ categories, expenses, month, today, onE
                 </button>
               ))}
             </div>
-            {hasPrev && (
-              <p className="mt-2 text-xs text-slate-400">
-                Change is compared with the same period last month.
-              </p>
-            )}
+            {hasPrev && <p className="mt-2 text-xs text-slate-400">{t.insights.changeNote}</p>}
           </div>
         </>
       )}
@@ -151,8 +156,8 @@ export default function InsightsScreen({ categories, expenses, month, today, onE
         <span className="flex items-center gap-3">
           <TrendingUp size={18} className="text-slate-500" />
           <span>
-            <span className="block font-semibold">Daily spending trend</span>
-            <span className="block text-xs text-slate-400">Regular spending day by day vs your limit</span>
+            <span className="block font-semibold">{t.insights.trendTitle}</span>
+            <span className="block text-xs text-slate-400">{t.insights.trendSub}</span>
           </span>
         </span>
         <ChevronRight size={18} className="text-slate-300" />
@@ -160,10 +165,10 @@ export default function InsightsScreen({ categories, expenses, month, today, onE
 
       {selected && (
         <ListDialog
-          title={`${selected.name} · ${formatMonth(month)}`}
-          subtitle={kind === 'regular' ? 'Regular' : 'Extra'}
+          title={`${labelOf(selected)} · ${monthLabel}`}
+          subtitle={kind === 'regular' ? t.common.regular : t.common.extra}
           total={selected.total}
-          footerNote={`${Math.round(selected.share * 100)}% of your ${kind} spending this month`}
+          footerNote={t.insights.dialogFooter(Math.round(selected.share * 100), kind)}
           onClose={() => setSelectedId(null)}
         >
           <div className="mt-2 divide-y divide-slate-100 rounded-2xl border border-slate-100">
@@ -171,7 +176,7 @@ export default function InsightsScreen({ categories, expenses, month, today, onE
               <ExpenseRow
                 key={e.id}
                 expense={e}
-                categoryName={selected.name}
+                categoryName={labelOf(selected)}
                 showDate
                 onClick={() => onExpenseClick(e)}
               />

@@ -3,14 +3,13 @@ import type { Category, Expense, Kind } from '../../shared/types'
 import { digits } from '../../shared/utils/format'
 import { getToday } from '../../shared/utils/date'
 import { kindOf } from '../../shared/utils/kind'
-import type { QuickTemplate } from './recent'
+import { useI18n } from '../../shared/i18n/context'
 
 type Props = {
   categories: Category[]
   defaultCategoryIds: Record<Kind, string>
   defaultDate?: string
   initial?: Expense
-  quickAdd?: QuickTemplate[]
   onSave: (fields: Omit<Expense, 'id'>) => void
   onDelete?: () => void
   onClose: () => void
@@ -21,11 +20,11 @@ export default function ExpenseSheet({
   defaultCategoryIds,
   defaultDate,
   initial,
-  quickAdd = [],
   onSave,
   onDelete,
   onClose,
 }: Props) {
+  const { t, catName } = useI18n()
   const [kind, setKind] = useState<Kind>(initial ? kindOf(initial) : 'regular')
   const [amount, setAmount] = useState(initial ? String(initial.amount) : '')
   const [categoryId, setCategoryId] = useState(initial?.categoryId ?? defaultCategoryIds.regular)
@@ -40,13 +39,6 @@ export default function ExpenseSheet({
     if (next === kind) return
     setKind(next)
     setCategoryId(defaultCategoryIds[next])
-  }
-
-  const applyTemplate = (t: QuickTemplate) => {
-    setKind(t.kind)
-    setCategoryId(t.categoryId)
-    setAmount(String(t.amount))
-    setNote(t.note ?? '')
   }
 
   const save = () =>
@@ -67,26 +59,9 @@ export default function ExpenseSheet({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold">{initial ? 'Edit expense' : 'Add expense'}</h2>
-          <button className="text-slate-400" onClick={onClose}>✕</button>
+          <h2 className="text-xl font-bold">{initial ? t.expense.editTitle : t.expense.addTitle}</h2>
+          <button className="text-slate-400" aria-label={t.common.close} onClick={onClose}>✕</button>
         </div>
-
-        {!initial && quickAdd.length > 0 && (
-          <div className="mb-4">
-            <div className="mb-1 text-xs font-medium text-slate-400">RECENT</div>
-            <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
-              {quickAdd.map((t) => (
-                <button
-                  key={t.key}
-                  onClick={() => applyTemplate(t)}
-                  className="shrink-0 rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-700 active:bg-indigo-50"
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div className="mb-4 flex rounded-xl bg-slate-100 p-1 text-sm font-semibold">
           {(['regular', 'extra'] as const).map((k) => (
@@ -95,7 +70,7 @@ export default function ExpenseSheet({
               onClick={() => switchKind(k)}
               className={`flex-1 rounded-lg py-2 ${kind === k ? 'bg-white shadow-sm' : 'text-slate-500'}`}
             >
-              {k === 'regular' ? 'Regular' : 'Extra'}
+              {k === 'regular' ? t.common.regular : t.common.extra}
             </button>
           ))}
         </div>
@@ -103,7 +78,7 @@ export default function ExpenseSheet({
         <input
           autoFocus
           inputMode="numeric"
-          placeholder="₹ 0"
+          placeholder={t.expense.amountPlaceholder}
           value={amount}
           onChange={(e) => setAmount(digits(e.target.value))}
           className="w-full border-b-2 border-slate-200 pb-2 text-4xl font-bold outline-none focus:border-indigo-500"
@@ -118,7 +93,7 @@ export default function ExpenseSheet({
                 categoryId === c.id ? chipActive : 'bg-slate-100 text-slate-700'
               }`}
             >
-              {c.name}
+              {catName(c)}
             </button>
           ))}
         </div>
@@ -131,7 +106,7 @@ export default function ExpenseSheet({
             className="rounded-xl border border-slate-300 px-3 py-2"
           />
           <input
-            placeholder={kind === 'extra' ? 'What was it for? (optional)' : 'Note (optional)'}
+            placeholder={kind === 'extra' ? t.expense.extraNotePlaceholder : t.expense.notePlaceholder}
             value={note}
             onChange={(e) => setNote(e.target.value)}
             className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2"
@@ -143,17 +118,17 @@ export default function ExpenseSheet({
           onClick={save}
           className="mt-5 w-full rounded-xl bg-indigo-600 py-4 text-lg font-semibold text-white disabled:bg-slate-300"
         >
-          Save
+          {t.common.save}
         </button>
 
         {onDelete && (
           <button
             onClick={() => {
-              if (window.confirm('Delete this expense?')) onDelete()
+              if (window.confirm(t.expense.confirmDelete)) onDelete()
             }}
             className="mt-2 w-full py-3 font-medium text-red-600"
           >
-            Delete
+            {t.common.delete}
           </button>
         )}
       </div>

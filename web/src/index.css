@@ -13,3 +13,64 @@ body {
 button:not(:disabled) {
   cursor: pointer;
 }
+
+/* Dark theme: Tailwind ke colour variables palat dete hain */
+html.dark {
+  color-scheme: dark;
+
+  --color-slate-50: #1a2336;
+  --color-slate-100: #243047;
+  --color-slate-200: #334155;
+  --color-slate-300: #475569;
+  --color-slate-400: #7b8ba3;
+  --color-slate-500: #a3b1c6;
+  --color-slate-600: #cbd5e1;
+  --color-slate-700: #e2e8f0;
+  --color-slate-800: #f1f5f9;
+  --color-slate-900: #f8fafc;
+
+  --color-indigo-50: #1e1b4b;
+  --color-indigo-100: #2b2766;
+  --color-indigo-200: #3730a3;
+  --color-indigo-600: #6366f1;
+
+  --color-emerald-50: #052e22;
+  --color-emerald-100: #06402e;
+  --color-emerald-200: #065f46;
+  --color-emerald-300: #059669;
+  --color-emerald-600: #34d399;
+  --color-emerald-700: #6ee7b7;
+  --color-emerald-800: #a7f3d0;
+
+  --color-amber-50: #2b1d05;
+  --color-amber-100: #3d2a07;
+  --color-amber-200: #5c3d0a;
+  --color-amber-300: #b45309;
+  --color-amber-700: #fcd34d;
+  --color-amber-800: #fde68a;
+
+  --color-red-50: #2d0f12;
+  --color-red-100: #421418;
+  --color-red-200: #5f1b20;
+  --color-red-300: #b91c1c;
+  --color-red-600: #f87171;
+  --color-red-700: #fca5a5;
+  --color-red-800: #fecaca;
+
+  --color-orange-600: #fb923c;
+}
+
+html.dark body {
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
+@media (min-width: 481px) {
+  html.dark body {
+    background: #020617;
+  }
+}
+
+html.dark .bg-white {
+  background-color: #0f172a;
+}

@@ -1,4 +1,5 @@
 import type { Category, Expense, Kind, MonthBudget } from '../shared/types'
+import { kindOf } from '../shared/utils/kind'
 
 export type AppData = {
   categories: Category[]
@@ -8,19 +9,52 @@ export type AppData = {
 
 const KEY = 'budget-planner-data'
 
-const DEFAULT_NAMES: Record<Kind, string[]> = {
-  regular: ['Groceries', 'Food', 'Dairy', 'Travel', 'Bills', 'Other'],
-  extra: ['Medical', 'Entertainment', 'Shopping', 'Repairs', 'Other'],
+type Default = { key: string; name: string }
+
+const DEFAULTS: Record<Kind, Default[]> = {
+  regular: [
+    { key: 'groceries', name: 'Groceries' },
+    { key: 'food', name: 'Food' },
+    { key: 'dairy', name: 'Dairy' },
+    { key: 'travel', name: 'Travel' },
+    { key: 'bills', name: 'Bills' },
+    { key: 'other', name: 'Other' },
+  ],
+  extra: [
+    { key: 'medical', name: 'Medical' },
+    { key: 'entertainment', name: 'Entertainment' },
+    { key: 'shopping', name: 'Shopping' },
+    { key: 'repairs', name: 'Repairs' },
+    { key: 'other', name: 'Other' },
+  ],
+}
+
+// Pehle ke purane default naam jo ab nahi bante, par kisi ke data me ho sakte hain
+const LEGACY: Record<Kind, Default[]> = {
+  regular: [{ key: 'shopping', name: 'Shopping' }],
+  extra: [],
 }
 
 const makeDefaults = (kind: Kind): Category[] =>
-  DEFAULT_NAMES[kind].map((name) => ({ id: crypto.randomUUID(), name, kind }))
+  DEFAULTS[kind].map(({ key, name }) => ({ id: crypto.randomUUID(), name, kind, key }))
 
-// Purana data ko naye format me laata hai (jaise Extra categories add karna)
+// Purana data ko naye format me laata hai
 export function migrate(data: AppData): AppData {
-  const hasExtra = data.categories.some((c) => c.kind === 'extra')
-  if (hasExtra) return data
-  return { ...data, categories: [...data.categories, ...makeDefaults('extra')] }
+  let categories = data.categories
+
+  if (!categories.some((c) => c.kind === 'extra')) {
+    categories = [...categories, ...makeDefaults('extra')]
+  }
+
+  // Default naam wali categories ko key do, taaki Hindi me unka naam dikhe
+  categories = categories.map((c) => {
+    if (c.key) return c
+    const kind = kindOf(c)
+    const match = [...DEFAULTS[kind], ...LEGACY[kind]].find((d) => d.name === c.name)
+    return match ? { ...c, key: match.key } : c
+  })
+
+  return { ...data, categories }
 }
 
 export function loadData(): AppData {

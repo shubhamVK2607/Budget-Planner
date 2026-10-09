@@ -1,5 +1,4 @@
 import type { Expense, MonthBudget } from '../../shared/types'
-import { rupee } from '../../shared/utils/format'
 import { getDailyLimitOn, getDaysInMonth, getPace, getStatus } from '../budget/budget'
 import type { Status } from '../budget/budget'
 
@@ -37,11 +36,15 @@ export function getTrendSummary(budget: MonthBudget, expenses: Expense[], series
   return { pace, pastDays, overDays, spent, allowed: spent + pace }
 }
 
-export type PaceMessage = { text: string; tone: 'good' | 'bad' | 'neutral' }
+export type PaceInfo =
+  | { type: 'none' | 'exact'; tone: 'neutral' }
+  | { type: 'saved'; tone: 'good'; amount: number }
+  | { type: 'overspent'; tone: 'bad'; amount: number }
 
-export function getPaceMessage(pace: number, pastDays: number): PaceMessage {
-  if (pastDays === 0) return { text: "This month hasn't started yet.", tone: 'neutral' }
-  if (pace > 0) return { text: `You've saved ${rupee(pace)} so far this month.`, tone: 'good' }
-  if (pace < 0) return { text: `You've overspent by ${rupee(-pace)} so far this month.`, tone: 'bad' }
-  return { text: "You're exactly on track so far this month.", tone: 'neutral' }
+// Text yahan nahi banta, screen apni bhasha me banati hai
+export function getPaceInfo(pace: number, pastDays: number): PaceInfo {
+  if (pastDays === 0) return { type: 'none', tone: 'neutral' }
+  if (pace > 0) return { type: 'saved', tone: 'good', amount: pace }
+  if (pace < 0) return { type: 'overspent', tone: 'bad', amount: -pace }
+  return { type: 'exact', tone: 'neutral' }
 }

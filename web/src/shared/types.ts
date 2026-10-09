@@ -5,6 +5,7 @@ export type Category = {
   name: string
   archived?: boolean
   kind?: Kind // khali = regular (purane data ke liye)
+  key?: string // default categories ki pehchaan (translation ke liye)
 }
 
 export type Expense = {

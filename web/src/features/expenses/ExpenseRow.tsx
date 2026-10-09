@@ -1,6 +1,7 @@
 import type { Expense } from '../../shared/types'
 import { rupee } from '../../shared/utils/format'
 import { formatShortDate } from '../../shared/utils/date'
+import { useI18n } from '../../shared/i18n/context'
 
 type Props = {
   expense: Expense
@@ -10,18 +11,19 @@ type Props = {
 }
 
 export default function ExpenseRow({ expense, categoryName, showDate = false, onClick }: Props) {
-  const sub = [showDate ? formatShortDate(expense.date) : null, expense.note ? categoryName : null]
+  const { t, locale } = useI18n()
+  const sub = [showDate ? formatShortDate(expense.date, locale) : null, expense.note ? categoryName : null]
     .filter(Boolean)
     .join(' · ')
 
   return (
-    <button onClick={onClick} className="flex cursor-pointer w-full items-center justify-between px-4 py-3 text-left">
+    <button onClick={onClick} className="flex w-full items-center justify-between px-4 py-3 text-left">
       <div>
         <div className="flex items-center gap-2">
           <span>{expense.note || categoryName}</span>
           {expense.kind === 'extra' && (
             <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-              Extra
+              {t.common.extra}
             </span>
           )}
         </div>

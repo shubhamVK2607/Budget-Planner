@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import type { Expense, MonthBudget } from '../../shared/types'
 import { formatMonth, shiftMonth } from '../../shared/utils/date'
+import { useI18n } from '../../shared/i18n/context'
 import { getDailyLimitOn, getDaysInMonth, getStatus } from '../budget/budget'
 import { forDate, forMonth, ofKind, sumAmount } from '../expenses/expenses'
 
@@ -15,8 +16,6 @@ type Props = {
   onClose: () => void
 }
 
-const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
-
 const cellStyle = {
   green: 'bg-emerald-100 text-emerald-800',
   yellow: 'bg-amber-100 text-amber-800',
@@ -28,6 +27,7 @@ const cellStyle = {
 const compact = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace('.0', '')}k` : String(n))
 
 export default function CalendarPopup({ budgets, expenses, selectedDate, minDate, today, onSelect, onClose }: Props) {
+  const { t, locale } = useI18n()
   const [browse, setBrowse] = useState(selectedDate.slice(0, 7))
 
   const budget = budgets[browse]
@@ -52,16 +52,16 @@ export default function CalendarPopup({ budgets, expenses, selectedDate, minDate
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-1">
             <button
-              aria-label="Previous month"
+              aria-label={t.header.prevMonth}
               disabled={!canPrev}
               onClick={() => setBrowse(shiftMonth(browse, -1))}
               className="rounded-full p-1.5 disabled:opacity-20"
             >
               <ChevronLeft size={20} />
             </button>
-            <h2 className="min-w-[140px] text-center text-lg font-bold">{formatMonth(browse)}</h2>
+            <h2 className="min-w-[140px] text-center text-lg font-bold">{formatMonth(browse, locale)}</h2>
             <button
-              aria-label="Next month"
+              aria-label={t.header.nextMonth}
               disabled={!canNext}
               onClick={() => setBrowse(shiftMonth(browse, 1))}
               className="rounded-full p-1.5 disabled:opacity-20"
@@ -69,13 +69,13 @@ export default function CalendarPopup({ budgets, expenses, selectedDate, minDate
               <ChevronRight size={20} />
             </button>
           </div>
-          <button aria-label="Close" onClick={onClose} className="rounded-full p-1 text-slate-400">
+          <button aria-label={t.common.close} onClick={onClose} className="rounded-full p-1 text-slate-400">
             <X size={20} />
           </button>
         </div>
 
         <div className="mb-1 grid grid-cols-7 text-center text-xs font-medium text-slate-400">
-          {WEEKDAYS.map((d, i) => (
+          {t.calendar.weekdaysShort.map((d, i) => (
             <div key={i}>{d}</div>
           ))}
         </div>
@@ -119,16 +119,16 @@ export default function CalendarPopup({ budgets, expenses, selectedDate, minDate
 
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
           <span className="flex items-center gap-1">
-            <span className="h-2.5 w-2.5 rounded-sm bg-emerald-300" /> Within limit
+            <span className="h-2.5 w-2.5 rounded-sm bg-emerald-300" /> {t.calendar.legendWithin}
           </span>
           <span className="flex items-center gap-1">
-            <span className="h-2.5 w-2.5 rounded-sm bg-amber-300" /> Close
+            <span className="h-2.5 w-2.5 rounded-sm bg-amber-300" /> {t.calendar.legendClose}
           </span>
           <span className="flex items-center gap-1">
-            <span className="h-2.5 w-2.5 rounded-sm bg-red-300" /> Over
+            <span className="h-2.5 w-2.5 rounded-sm bg-red-300" /> {t.calendar.legendOver}
           </span>
           <span className="flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-orange-500" /> Extra
+            <span className="h-1.5 w-1.5 rounded-full bg-orange-500" /> {t.calendar.legendExtra}
           </span>
         </div>
 
@@ -137,7 +137,7 @@ export default function CalendarPopup({ budgets, expenses, selectedDate, minDate
             onClick={() => onSelect(today)}
             className="mt-3 w-full rounded-xl border border-indigo-600 py-2 font-semibold text-indigo-600"
           >
-            Go to today
+            {t.calendar.goToday}
           </button>
         )}
       </div>

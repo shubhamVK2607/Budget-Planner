@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import { useAppData } from '../hooks/useAppData'
 import { copyBudget, findPreviousBudget } from '../features/budget/budget'
 import { getOverflowNotice } from '../features/budget/overflowNotice'
-import { getQuickTemplates } from '../features/expenses/recent'
+import type { OverflowNotice } from '../features/budget/overflowNotice'
 import { formatShortDate, getToday, shiftDay, shiftMonthKeepDay } from '../shared/utils/date'
 import { rupee } from '../shared/utils/format'
 import { kindOf } from '../shared/utils/kind'
+import { useI18n } from '../shared/i18n/context'
 import BottomNav from '../shared/components/BottomNav'
 import type { Tab } from '../shared/components/BottomNav'
 import NoticeDialog from '../shared/components/NoticeDialog'
@@ -25,6 +26,7 @@ import type { Expense, Kind, MonthBudget } from '../shared/types'
 type SheetState = { expense?: Expense; date?: string }
 
 function App() {
+  const { t, locale, catName } = useI18n()
   const [data, setData] = useAppData()
   const today = getToday()
   const currentMonth = today.slice(0, 7)
@@ -38,7 +40,7 @@ function App() {
   const [editingBudget, setEditingBudget] = useState(false)
   const [startFresh, setStartFresh] = useState(false)
   const [sheet, setSheet] = useState<SheetState | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
+  const [notice, setNotice] = useState<OverflowNotice | null>(null)
   const [toast, setToast] = useState<{ id: number; text: string } | null>(null)
 
   useEffect(() => {
@@ -97,12 +99,13 @@ function App() {
     setSheet(null)
     setNotice(getOverflowNotice(data.budgets[fields.date.slice(0, 7)], data.expenses, nextExpenses))
 
-    const categoryName = data.categories.find((c) => c.id === fields.categoryId)?.name
+    const category = data.categories.find((c) => c.id === fields.categoryId)
+    const amountText = rupee(fields.amount)
     showToast(
       [
-        `${editing ? 'Updated' : 'Added'} ${rupee(fields.amount)}`,
-        categoryName,
-        fields.date !== viewDate ? formatShortDate(fields.date) : null,
+        editing ? t.toast.updated(amountText) : t.toast.added(amountText),
+        category ? catName(category) : null,
+        fields.date !== viewDate ? formatShortDate(fields.date, locale) : null,
       ]
         .filter(Boolean)
         .join(' · ')
@@ -114,7 +117,7 @@ function App() {
     if (!editing) return
     setData({ ...data, expenses: data.expenses.filter((e) => e.id !== editing.id) })
     setSheet(null)
-    showToast('Expense deleted')
+    showToast(t.toast.deleted)
   }
 
   const addCategory = (name: string, kind: Kind) => {
@@ -140,7 +143,6 @@ function App() {
     regular: pickDefault('regular'),
     extra: pickDefault('extra'),
   }
-  const quickAdd = getQuickTemplates(data.expenses, data.categories)
 
   const monthHeader = (
     <MonthHeader
@@ -280,13 +282,23 @@ function App() {
             defaultCategoryIds={defaultCategoryIds}
             defaultDate={sheet.date}
             initial={sheet.expense}
-            quickAdd={quickAdd}
             onSave={saveExpense}
             onDelete={sheet.expense ? deleteExpense : undefined}
             onClose={() => setSheet(null)}
           />
         )}
-        {notice && <NoticeDialog title="Extra budget exceeded" message={notice} onClose={() => setNotice(null)} />}
+        {notice && (
+          <NoticeDialog
+            title={t.notice.title}
+            message={
+              t.notice.overBy(rupee(notice.extraBudget), rupee(notice.overflow)) +
+              (notice.tomorrow
+                ? t.notice.fromTomorrow(rupee(notice.tomorrow.now), rupee(notice.tomorrow.was))
+                : '')
+            }
+            onClose={() => setNotice(null)}
+          />
+        )}
       </>
     )
   }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Category, Kind } from '../../shared/types'
 import { kindOf } from '../../shared/utils/kind'
+import { useI18n } from '../../shared/i18n/context'
 
 type Props = {
   title: string
@@ -11,13 +12,15 @@ type Props = {
 }
 
 export default function CategoryManager({ title, kind, categories, onAdd, onToggleArchive }: Props) {
+  const { t, catName } = useI18n()
   const [name, setName] = useState('')
 
   const mine = categories.filter((c) => kindOf(c) === kind)
   const active = mine.filter((c) => !c.archived)
   const hidden = mine.filter((c) => c.archived)
   const trimmed = name.trim()
-  const duplicate = mine.some((c) => c.name.toLowerCase() === trimmed.toLowerCase())
+  const lower = trimmed.toLowerCase()
+  const duplicate = mine.some((c) => c.name.toLowerCase() === lower || catName(c).toLowerCase() === lower)
 
   const add = () => {
     if (!trimmed || duplicate) return
@@ -31,13 +34,13 @@ export default function CategoryManager({ title, kind, categories, onAdd, onTogg
       <div className="divide-y divide-slate-100 rounded-2xl border border-slate-100">
         {active.map((c) => (
           <div key={c.id} className="flex items-center justify-between px-4 py-3">
-            <span>{c.name}</span>
+            <span>{catName(c)}</span>
             <button
               disabled={active.length === 1}
               onClick={() => onToggleArchive(c.id)}
-              className="text-sm cursor-pointer text-slate-500 disabled:opacity-30"
+              className="text-sm text-slate-500 disabled:opacity-30"
             >
-              Hide
+              {t.common.hide}
             </button>
           </div>
         ))}
@@ -45,7 +48,7 @@ export default function CategoryManager({ title, kind, categories, onAdd, onTogg
 
       <div className="mt-3 flex gap-2">
         <input
-          placeholder="New category"
+          placeholder={t.categories.newCategory}
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && add()}
@@ -54,20 +57,22 @@ export default function CategoryManager({ title, kind, categories, onAdd, onTogg
         <button
           disabled={!trimmed || duplicate}
           onClick={add}
-          className="rounded-xl cursor-pointer bg-indigo-600 px-5 font-semibold text-white disabled:bg-slate-300"
+          className="rounded-xl bg-indigo-600 px-5 font-semibold text-white disabled:bg-slate-300"
         >
-          Add
+          {t.common.add}
         </button>
       </div>
-      {duplicate && trimmed && <p className="mt-1 text-sm text-red-600">This category already exists</p>}
+      {duplicate && trimmed && <p className="mt-1 text-sm text-red-600">{t.categories.exists}</p>}
 
       {hidden.length > 0 && (
         <div className="mt-3 divide-y divide-slate-100 rounded-2xl border border-slate-100">
           {hidden.map((c) => (
             <div key={c.id} className="flex items-center justify-between px-4 py-3 text-slate-400">
-              <span>{c.name} (hidden)</span>
-              <button onClick={() => onToggleArchive(c.id)} className="text-sm cursor-pointer text-indigo-600">
-                Restore
+              <span>
+                {catName(c)} {t.categories.hiddenSuffix}
+              </span>
+              <button onClick={() => onToggleArchive(c.id)} className="text-sm text-indigo-600">
+                {t.common.restore}
               </button>
             </div>
           ))}

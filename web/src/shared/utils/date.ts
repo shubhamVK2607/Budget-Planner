@@ -33,23 +33,23 @@ export function shiftMonthKeepDay(date: string, delta: number): string {
   return `${target.getFullYear()}-${pad(target.getMonth() + 1)}-${pad(Math.min(day, lastDay))}`
 }
 
-// "2026-10" → "October 2026"
-export function formatMonth(month: string): string {
+// "2026-10" → "October 2026" / "अक्टूबर 2026"
+export function formatMonth(month: string, locale = 'en-IN'): string {
   const [year, m] = month.split('-').map(Number)
-  return new Date(year, m - 1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
+  return new Date(year, m - 1).toLocaleDateString(locale, { month: 'long', year: 'numeric' })
 }
 
 // "2026-10-05" → "5 Oct"
-export function formatShortDate(date: string): string {
-  return toDate(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+export function formatShortDate(date: string, locale = 'en-IN'): string {
+  return toDate(date).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
 }
 
 // "2026-10-05" → "5 Oct 2026"
-export function formatFullDate(date: string): string {
-  return toDate(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+export function formatFullDate(date: string, locale = 'en-IN'): string {
+  return toDate(date).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 // "2026-10-05" → "Monday"
-export function formatWeekday(date: string): string {
-  return toDate(date).toLocaleDateString('en-IN', { weekday: 'long' })
+export function formatWeekday(date: string, locale = 'en-IN'): string {
+  return toDate(date).toLocaleDateString(locale, { weekday: 'long' })
 }

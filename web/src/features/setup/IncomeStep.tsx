@@ -1,6 +1,7 @@
 import { digits, inWords, rupee } from '../../shared/utils/format'
+import { useI18n } from '../../shared/i18n/context'
 
-const QUICK_ADD = [25000, 50000, 100000, 150000, 200000]
+const QUICK_ADD = [5000, 10000, 25000, 50000]
 const MAX_INCOME = 999999999
 
 type Props = {
@@ -10,17 +11,18 @@ type Props = {
 }
 
 export default function IncomeStep({ value, onChange, onNext }: Props) {
+  const { t } = useI18n()
   const amount = Number(value) || 0
   const display = amount ? amount.toLocaleString('en-IN') : ''
-  const words = inWords(amount)
+  const words = inWords(amount, t.setup.units)
 
   const add = (n: number) => onChange(String(Math.min(amount + n, MAX_INCOME)))
 
   return (
     <>
       <div className="flex flex-1 flex-col justify-center pb-6">
-        <h1 className="text-2xl font-bold">What's your monthly income?</h1>
-        <p className="mt-2 text-slate-500">Your salary or total earnings for this month.</p>
+        <h1 className="text-3xl font-bold">{t.setup.incomeTitle}</h1>
+        <p className="mt-2 text-slate-500">{t.setup.incomeSub}</p>
 
         <div className="mt-8 flex items-baseline justify-center gap-1 border-b-2 border-slate-200 pb-2 focus-within:border-indigo-500">
           <span className="text-2xl font-semibold text-slate-400">₹</span>
@@ -52,16 +54,16 @@ export default function IncomeStep({ value, onChange, onNext }: Props) {
               onClick={() => onChange('')}
               className="rounded-full px-4 py-2 text-sm font-medium text-slate-400 active:scale-95"
             >
-              Clear
+              {t.common.clear}
             </button>
           )}
         </div>
 
         <div className="mt-8 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
-          <div className="mb-1 font-semibold text-slate-700">What happens next</div>
-          <div>1. Add your fixed bills (rent, EMI, SIP)</div>
-          <div>2. We show what's left to spend</div>
-          <div>3. You get a simple daily limit</div>
+          <div className="mb-1 font-semibold text-slate-700">{t.setup.whatNext}</div>
+          <div>{t.setup.next1}</div>
+          <div>{t.setup.next2}</div>
+          <div>{t.setup.next3}</div>
         </div>
       </div>
 
@@ -70,7 +72,7 @@ export default function IncomeStep({ value, onChange, onNext }: Props) {
         onClick={onNext}
         className="w-full rounded-xl bg-indigo-600 py-4 text-lg font-semibold text-white disabled:bg-slate-300"
       >
-        Next
+        {t.common.next}
       </button>
     </>
   )

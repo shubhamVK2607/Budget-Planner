@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Expense, MonthBudget } from '../../shared/types'
-import { getDailySeries, getPaceMessage, getTrendSummary } from './trend'
+import { getDailySeries, getPaceInfo, getTrendSummary } from './trend'
 
 // Oct 2026: pool 25,000, 31 din, daily limit 806
 const base: MonthBudget = {
@@ -43,18 +43,24 @@ describe('getDailySeries', () => {
 })
 
 describe('getTrendSummary', () => {
-  it('counts days over the limit and the pace', () => {
+  it('counts days over the limit, the pace and the totals', () => {
     const list = [expense(900, '2026-10-01', 'regular')] // 900 > 806 → red
     const series = getDailySeries(base, list, '2026-10-03')
-    expect(getTrendSummary(base, list, series)).toEqual({ pace: 1518, pastDays: 3, overDays: 1 })
+    expect(getTrendSummary(base, list, series)).toEqual({
+      pace: 1518,
+      pastDays: 3,
+      overDays: 1,
+      spent: 900,
+      allowed: 2418, // 3 × 806
+    })
   })
 })
 
-describe('getPaceMessage', () => {
-  it('uses plain words for each case', () => {
-    expect(getPaceMessage(1518, 3).tone).toBe('good')
-    expect(getPaceMessage(-200, 3).tone).toBe('bad')
-    expect(getPaceMessage(0, 3).tone).toBe('neutral')
-    expect(getPaceMessage(0, 0).text).toContain("hasn't started")
+describe('getPaceInfo', () => {
+  it('describes each case', () => {
+    expect(getPaceInfo(1518, 3)).toEqual({ type: 'saved', tone: 'good', amount: 1518 })
+    expect(getPaceInfo(-200, 3)).toEqual({ type: 'overspent', tone: 'bad', amount: 200 })
+    expect(getPaceInfo(0, 3).type).toBe('exact')
+    expect(getPaceInfo(0, 0).type).toBe('none')
   })
 })

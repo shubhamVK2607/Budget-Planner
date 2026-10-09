@@ -1,20 +1,23 @@
 import { ChartPie, House, Settings } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { useI18n } from '../i18n/context'
 
 export type Tab = 'home' | 'insights' | 'settings'
 
-const tabs: { id: Tab; label: string; Icon: LucideIcon }[] = [
-  { id: 'home', label: 'Home', Icon: House },
-  { id: 'insights', label: 'Insights', Icon: ChartPie },
-  { id: 'settings', label: 'Settings', Icon: Settings },
+const tabs: { id: Tab; Icon: LucideIcon }[] = [
+  { id: 'home', Icon: House },
+  { id: 'insights', Icon: ChartPie },
+  { id: 'settings', Icon: Settings },
 ]
 
 type Props = { active: Tab; onChange: (tab: Tab) => void }
 
 export default function BottomNav({ active, onChange }: Props) {
+  const { t } = useI18n()
+
   return (
     <nav className="fixed bottom-0 left-1/2 z-10 flex w-full max-w-[480px] -translate-x-1/2 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)]">
-      {tabs.map(({ id, label, Icon }) => (
+      {tabs.map(({ id, Icon }) => (
         <button
           key={id}
           onClick={() => onChange(id)}
@@ -23,7 +26,7 @@ export default function BottomNav({ active, onChange }: Props) {
           }`}
         >
           <Icon size={22} />
-          {label}
+          {t.nav[id]}
         </button>
       ))}
     </nav>

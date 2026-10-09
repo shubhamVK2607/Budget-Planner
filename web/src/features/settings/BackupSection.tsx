@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Download, Upload } from 'lucide-react'
 import type { AppData } from '../../services/storage'
+import { useI18n } from '../../shared/i18n/context'
 import { exportBackup, parseBackup } from '../backup/backup'
 
 type Props = {
@@ -9,15 +10,16 @@ type Props = {
 }
 
 export default function BackupSection({ data, onImport }: Props) {
+  const { t } = useI18n()
   const fileRef = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null)
 
   const handleExport = async () => {
     try {
       await exportBackup(data)
-      setMessage({ text: 'Backup ready. Keep the file somewhere safe (Files, Drive, or WhatsApp to yourself).' })
+      setMessage({ text: t.backup.exportDone })
     } catch {
-      setMessage({ text: 'Could not create the backup.', error: true })
+      setMessage({ text: t.backup.exportFail, error: true })
     }
   }
 
@@ -26,15 +28,13 @@ export default function BackupSection({ data, onImport }: Props) {
     try {
       const imported = parseBackup(await file.text())
       const ok = window.confirm(
-        `Replace ALL current data with this backup?\n\n${imported.expenses.length} expenses, ${
-          Object.keys(imported.budgets).length
-        } month(s). This cannot be undone.`
+        t.backup.confirm(imported.expenses.length, Object.keys(imported.budgets).length)
       )
       if (!ok) return
       onImport(imported)
-      setMessage({ text: 'Backup restored.' })
-    } catch (e) {
-      setMessage({ text: (e as Error).message, error: true })
+      setMessage({ text: t.backup.restored })
+    } catch {
+      setMessage({ text: t.backup.invalid, error: true })
     } finally {
       if (fileRef.current) fileRef.current.value = ''
     }
@@ -42,23 +42,21 @@ export default function BackupSection({ data, onImport }: Props) {
 
   return (
     <div className="mb-6">
-      <div className="mb-2 text-sm font-medium text-slate-500">BACKUP</div>
+      <div className="mb-2 text-sm font-medium text-slate-500">{t.backup.title}</div>
       <div className="rounded-2xl border border-slate-100 p-4">
-        <p className="mb-3 text-sm text-slate-500">
-          Your data is stored only on this phone. Save a backup so you never lose it.
-        </p>
+        <p className="mb-3 text-sm text-slate-500">{t.backup.desc}</p>
         <div className="flex gap-2">
           <button
             onClick={handleExport}
             className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-indigo-600 py-2 font-semibold text-indigo-600"
           >
-            <Download size={16} /> Export
+            <Download size={16} /> {t.backup.export}
           </button>
           <button
             onClick={() => fileRef.current?.click()}
             className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-300 py-2 font-semibold text-slate-700"
           >
-            <Upload size={16} /> Import
+            <Upload size={16} /> {t.backup.import}
           </button>
         </div>
         <input
