@@ -124,6 +124,28 @@ function App() {
     setData({ ...data, categories: [...data.categories, { id: crypto.randomUUID(), name, kind }] })
   }
 
+  // Naam badalne par key hata dete hain, taaki user ka likha naam hi dikhe (translate na ho)
+  const renameCategory = (id: string, name: string) => {
+    setData({
+      ...data,
+      categories: data.categories.map((c) => (c.id === id ? { ...c, name, key: undefined } : c)),
+    })
+  }
+
+  // fromId ke saare kharche toId me chale jaate hain, phir fromId hat jaati hai
+  const mergeCategory = (fromId: string, toId: string) => {
+    const from = data.categories.find((c) => c.id === fromId)
+    const to = data.categories.find((c) => c.id === toId)
+    if (!from || !to || fromId === toId || kindOf(from) !== kindOf(to)) return
+
+    setData({
+      ...data,
+      categories: data.categories.filter((c) => c.id !== fromId),
+      expenses: data.expenses.map((e) => (e.categoryId === fromId ? { ...e, categoryId: toId } : e)),
+    })
+    showToast(t.toast.merged(catName(from), catName(to)))
+  }
+
   const toggleArchive = (id: string) => {
     setData({
       ...data,
@@ -250,6 +272,8 @@ function App() {
               data={data}
               onEditBudget={() => setEditingBudget(true)}
               onAddCategory={addCategory}
+              onRenameCategory={renameCategory}
+              onMergeCategory={mergeCategory}
               onToggleArchive={toggleArchive}
               onImport={(imported) => {
                 setData(imported)

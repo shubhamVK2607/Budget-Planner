@@ -161,6 +161,14 @@ export const hi: Dict = {
     newCategory: 'नई कैटेगरी',
     exists: 'यह कैटेगरी पहले से है',
     hiddenSuffix: '(छिपी हुई)',
+    rename: 'नाम बदलें',
+    merge: 'दूसरी कैटेगरी में मिलाएँ',
+    mergeTitle: (name: string) => `"${name}" को किसमें मिलाना है?`,
+    mergeDesc: (n: number) =>
+      n > 0
+        ? `${n} खर्च चुनी हुई कैटेगरी में चले जाएँगे। यह वापस नहीं हो सकेगा।`
+        : 'इस कैटेगरी में कोई खर्च नहीं है। यह हटा दी जाएगी।',
+    mergeConfirm: 'मिलाएँ',
   },
 
   backup: {
@@ -233,18 +241,34 @@ export const hi: Dict = {
     added: (a: string) => `${a} जोड़े गए`,
     updated: (a: string) => `${a} अपडेट हुए`,
     deleted: 'खर्च हटाया गया',
+    merged: (from: string, to: string) => `${from} को ${to} में मिलाया गया`,
   },
 
   defaultCategories: {
     groceries: 'किराना',
-    food: 'खाना',
-    dairy: 'डेयरी',
+    eating_out: 'बाहर का खाना',
     travel: 'यात्रा',
-    bills: 'बिल',
+    home_personal: 'घर और पर्सनल',
     other: 'अन्य',
-    medical: 'इलाज',
-    entertainment: 'मनोरंजन',
+    medical: 'इलाज और सेहत',
     shopping: 'शॉपिंग',
-    repairs: 'मरम्मत',
+    gadgets_repairs: 'गैजेट और मरम्मत',
+    bills_recharge: 'बिल और रिचार्ज',
+    gifts_events: 'तोहफ़े और समारोह',
+    entertainment_trips: 'मनोरंजन और घूमना',
+  },
+
+  categoryHints: {
+    groceries: 'सब्ज़ी, दूध, राशन, मसाले, फल',
+    eating_out: 'समोसा, चाय, रेस्टोरेंट, Zomato',
+    travel: 'पेट्रोल, ऑटो, मेट्रो',
+    home_personal: 'हैंडवॉश, साबुन, शैंपू, बाल कटवाना',
+    other: 'जो कहीं फिट न हो',
+    medical: 'डॉक्टर, दवाइयाँ, जाँच, चश्मा',
+    shopping: 'कपड़े, जूते-चप्पल, बैग',
+    gadgets_repairs: 'फ़ोन ग्लास, कवर, मरम्मत, इलेक्ट्रॉनिक्स',
+    bills_recharge: 'मोबाइल रिचार्ज, DTH, बड़े बिल',
+    gifts_events: 'गिफ्ट, शादी, त्योहार',
+    entertainment_trips: 'फ़िल्म, आउटिंग, ट्रिप',
   },
 }

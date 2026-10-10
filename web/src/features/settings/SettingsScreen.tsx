@@ -14,6 +14,8 @@ type Props = {
   data: AppData
   onEditBudget: () => void
   onAddCategory: (name: string, kind: Kind) => void
+  onRenameCategory: (id: string, name: string) => void
+  onMergeCategory: (fromId: string, toId: string) => void
   onToggleArchive: (id: string) => void
   onImport: (data: AppData) => void
 }
@@ -48,6 +50,8 @@ export default function SettingsScreen({
   data,
   onEditBudget,
   onAddCategory,
+  onRenameCategory,
+  onMergeCategory,
   onToggleArchive,
   onImport,
 }: Props) {
@@ -106,14 +110,20 @@ export default function SettingsScreen({
         title={t.settings.regularCats}
         kind="regular"
         categories={categories}
+        expenses={data.expenses}
         onAdd={onAddCategory}
+        onRename={onRenameCategory}
+        onMerge={onMergeCategory}
         onToggleArchive={onToggleArchive}
       />
       <CategoryManager
         title={t.settings.extraCats}
         kind="extra"
         categories={categories}
+        expenses={data.expenses}
         onAdd={onAddCategory}
+        onRename={onRenameCategory}
+        onMerge={onMergeCategory}
         onToggleArchive={onToggleArchive}
       />
     </div>

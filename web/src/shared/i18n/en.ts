@@ -158,6 +158,14 @@ export const en = {
     newCategory: 'New category',
     exists: 'This category already exists',
     hiddenSuffix: '(hidden)',
+    rename: 'Rename',
+    merge: 'Merge into another category',
+    mergeTitle: (name: string) => `Merge "${name}" into…`,
+    mergeDesc: (n: number) =>
+      n > 0
+        ? `${n} expense(s) will move to the category you pick. This cannot be undone.`
+        : 'This category has no expenses. It will be removed.',
+    mergeConfirm: 'Merge',
   },
 
   backup: {
@@ -230,19 +238,35 @@ export const en = {
     added: (a: string) => `Added ${a}`,
     updated: (a: string) => `Updated ${a}`,
     deleted: 'Expense deleted',
+    merged: (from: string, to: string) => `Merged ${from} into ${to}`,
   },
 
   defaultCategories: {
     groceries: 'Groceries',
-    food: 'Food',
-    dairy: 'Dairy',
+    eating_out: 'Eating Out',
     travel: 'Travel',
-    bills: 'Bills',
+    home_personal: 'Home & Personal',
     other: 'Other',
-    medical: 'Medical',
-    entertainment: 'Entertainment',
+    medical: 'Medical & Health',
     shopping: 'Shopping',
-    repairs: 'Repairs',
+    gadgets_repairs: 'Gadgets & Repairs',
+    bills_recharge: 'Bills & Recharge',
+    gifts_events: 'Gifts & Events',
+    entertainment_trips: 'Entertainment & Trips',
+  } as Record<string, string>,
+
+  categoryHints: {
+    groceries: 'Veggies, milk, kirana, masala, fruits',
+    eating_out: 'Samosa, chai, restaurant, Zomato',
+    travel: 'Petrol, auto, metro',
+    home_personal: 'Handwash, soap, shampoo, haircut',
+    other: "Anything that doesn't fit",
+    medical: 'Doctor, medicines, tests, glasses',
+    shopping: 'Clothes, shoes, bags',
+    gadgets_repairs: 'Phone glass, cover, repairs, electronics',
+    bills_recharge: 'Mobile recharge, DTH, bigger bills',
+    gifts_events: 'Gifts, weddings, festivals',
+    entertainment_trips: 'Movies, outings, trips',
   } as Record<string, string>,
 }
 

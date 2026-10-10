@@ -35,6 +35,7 @@ export default function ExpenseSheet({
     (c) => kindOf(c) === kind && (!c.archived || c.id === initial?.categoryId)
   )
 
+
   const switchKind = (next: Kind) => {
     if (next === kind) return
     setKind(next)
