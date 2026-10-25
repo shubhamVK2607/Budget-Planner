@@ -60,7 +60,6 @@ export default function DashboardScreen({
 
   // Regular card: chuna hua din
   const daySpent = sumAmount(dayRegular)
-  const baseLimit = getDailyLimit(budget)
   const dayLimit = getDailyLimitOn(budget, expenses, viewDate)
   const dayStatus = getStatus(daySpent, dayLimit)
   const rs = statusStyle[dayStatus]
@@ -111,7 +110,7 @@ export default function DashboardScreen({
   return (
     <>
       {isPlanning ? (
-        <div className="space-y-4 p-5 pb-28">
+        <div className="space-y-3 p-4 pb-6">
           <section className="rounded-2xl border border-indigo-100 bg-indigo-50 p-5">
             <h2 className="mb-4 text-sm font-bold tracking-wide text-indigo-900">{t.home.planTitle}</h2>
             <div className="space-y-3">
@@ -133,11 +132,11 @@ export default function DashboardScreen({
         </div>
       ) : (
         <>
-      <div className="space-y-4 p-5 pb-28">
+      <div className="space-y-3 p-4 pb-6">
         {/* THIS MONTH */}
         <button
           onClick={() => setDialog('month')}
-          className="block w-full rounded-2xl bg-slate-50 px-5 py-5 text-left"
+          className="block w-full rounded-2xl bg-slate-50 p-4 text-left"
         >
           <div className="flex items-baseline justify-between">
             <span className="text-sm font-medium text-slate-500">{t.home.thisMonth}</span>
@@ -151,7 +150,7 @@ export default function DashboardScreen({
             <div className="bg-indigo-500" style={{ width: `${(regularSpent / scale) * 100}%` }} />
             <div className="bg-amber-500" style={{ width: `${(extraSpent / scale) * 100}%` }} />
           </div>
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-xs text-slate-500">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-x-2 gap-y-2 text-xs text-slate-500">
             <span className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-slate-400" /> {t.common.fixed} {rupee(fixedTotal)}
             </span>
@@ -179,7 +178,7 @@ export default function DashboardScreen({
         {/* REGULAR */}
         <button
           onClick={() => setDialog('regular')}
-          className={`block w-full rounded-2xl border p-5 text-left ${rs.card}`}
+          className={`block w-full rounded-2xl border p-4 text-left ${rs.card}`}
         >
           <div className="flex items-center justify-between">
             <span className="text-sm font-bold tracking-wide text-slate-700">{t.home.regularTitle}</span>
@@ -214,9 +213,6 @@ export default function DashboardScreen({
                 ? t.home.leftOn(rupee(dayLimit - daySpent), isToday)
                 : t.home.overOn(rupee(daySpent - dayLimit), isToday)}
             </div>
-            {dayLimit < baseLimit && (
-              <div className="mt-1 text-xs text-slate-500">{t.home.reduced(rupee(baseLimit))}</div>
-            )}
           </div>
 
           <div className="mt-3 flex items-center justify-end gap-0.5 text-xs text-slate-500">
@@ -227,7 +223,7 @@ export default function DashboardScreen({
         {/* EXTRA */}
         <button
           onClick={() => setDialog('extra')}
-          className={`block w-full rounded-2xl border p-5 text-left ${es.card}`}
+          className={`block w-full rounded-2xl border p-4 text-left ${es.card}`}
         >
           <div className="flex items-center justify-between">
             <span className="text-sm font-bold tracking-wide text-slate-700">{t.home.extraTitle}</span>
