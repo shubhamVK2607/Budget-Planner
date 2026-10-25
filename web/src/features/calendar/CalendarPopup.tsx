@@ -117,7 +117,7 @@ export default function CalendarPopup({ budgets, expenses, selectedDate, minDate
           })}
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-16 gap-y-1 text-[11px] text-slate-500">
+        <div className="mt-3 flex flex-wrap items-center gap-x-10 gap-y-1 text-[11px] text-slate-500">
           <span className="flex items-center gap-1">
             <span className="h-2.5 w-2.5 rounded-sm bg-emerald-300" /> {t.calendar.legendWithin}
           </span>

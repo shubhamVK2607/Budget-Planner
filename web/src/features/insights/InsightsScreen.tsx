@@ -121,8 +121,8 @@ export default function InsightsScreen({ categories, expenses, month, today, onE
           <Donut slices={slices} total={total} centerLabel={t.insights.centerLabel} onSelect={setSelectedId} />
 
           <div>
-            <div className="mb-2 text-sm font-medium text-slate-500">{t.insights.byCategory}</div>
-            <div className="max-h-[16.5rem] divide-y divide-slate-100 overflow-y-auto overscroll-contain rounded-2xl border border-slate-100">
+            <div className="mb-1 text-sm font-medium text-slate-500">{t.insights.byCategory}</div>
+            <div className="max-h-[16rem] divide-y divide-slate-100 overflow-y-auto overscroll-contain rounded-2xl border border-slate-100">
               {slices.map((s) => (
                 <button
                   key={s.id}
