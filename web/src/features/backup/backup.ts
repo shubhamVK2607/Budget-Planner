@@ -41,6 +41,8 @@ export function parseBackup(text: string): AppData {
         typeof b.month === 'string' &&
         typeof b.income === 'number' &&
         Array.isArray(b.fixedItems) &&
+        (b.savingsTarget === undefined ||
+          (typeof b.savingsTarget === 'number' && Number.isInteger(b.savingsTarget) && b.savingsTarget >= 0)) &&
         (b.dailyLimitMode === 'auto' || b.dailyLimitMode === 'manual')
     )
 

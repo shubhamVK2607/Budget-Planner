@@ -9,7 +9,7 @@ export type AppData = {
 }
 
 const KEY = 'budget-planner-data'
-const SCHEMA = 2
+const SCHEMA = 3
 
 type Default = { key: string; name: string }
 
@@ -85,10 +85,16 @@ function orderCategories(categories: Category[]): Category[] {
   return [...sorted('regular'), ...sorted('extra')]
 }
 
-// Purana data ko naye format me laata hai (sirf ek baar, jab tak schema 2 nahi hota)
+// Purana data ko naye format me laata hai.
 export function migrate(data: AppData): AppData {
   if ((data.schema ?? 0) >= SCHEMA) return data
 
+  const budgets = Object.fromEntries(
+    Object.entries(data.budgets).map(([month, budget]) => [
+      month,
+      { ...budget, savingsTarget: budget.savingsTarget ?? 0 },
+    ])
+  )
   let categories = data.categories.map((c) => ({ ...c }))
   let expenses = data.expenses
 
@@ -143,7 +149,7 @@ export function migrate(data: AppData): AppData {
     }
   }
 
-  return { ...data, categories: orderCategories(categories), expenses, schema: SCHEMA }
+  return { ...data, budgets, categories: orderCategories(categories), expenses, schema: SCHEMA }
 }
 
 export function loadData(): AppData {

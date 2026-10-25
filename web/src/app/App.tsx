@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useAppData } from '../hooks/useAppData'
-import { copyBudget, findPreviousBudget } from '../features/budget/budget'
+import {
+  copyBudget,
+  findPreviousBudget,
+  getSavings,
+  getSavingsCrossing,
+  getSpendable,
+  getTotalSpent,
+} from '../features/budget/budget'
 import { getOverflowNotice } from '../features/budget/overflowNotice'
-import type { OverflowNotice } from '../features/budget/overflowNotice'
-import { formatShortDate, getToday, shiftDay, shiftMonthKeepDay } from '../shared/utils/date'
+import { formatShortDate, getToday, shiftDay, shiftMonth, shiftMonthKeepDay } from '../shared/utils/date'
 import { rupee } from '../shared/utils/format'
 import { kindOf } from '../shared/utils/kind'
 import { useI18n } from '../shared/i18n/context'
@@ -33,6 +39,7 @@ function App() {
 
   const [viewDate, setViewDate] = useState(getToday)
   const viewMonth = viewDate.slice(0, 7)
+  const isPlanning = viewMonth > currentMonth
 
   const [tab, setTab] = useState<Tab>('home')
   const [trendOpen, setTrendOpen] = useState(false)
@@ -40,7 +47,7 @@ function App() {
   const [editingBudget, setEditingBudget] = useState(false)
   const [startFresh, setStartFresh] = useState(false)
   const [sheet, setSheet] = useState<SheetState | null>(null)
-  const [notice, setNotice] = useState<OverflowNotice | null>(null)
+  const [notice, setNotice] = useState<{ title: string; message: string } | null>(null)
   const [toast, setToast] = useState<{ id: number; text: string } | null>(null)
 
   useEffect(() => {
@@ -58,10 +65,10 @@ function App() {
   const earliest = Object.keys(data.budgets).sort()[0]
   const minDate = `${earliest && earliest < currentMonth ? earliest : currentMonth}-01`
 
-  const canPrevDay = viewDate > minDate
-  const canNextDay = viewDate < today
+  const canPrevDay = !isPlanning && viewDate > minDate
+  const canNextDay = !isPlanning && viewDate < today
   const canPrevMonth = shiftMonthKeepDay(viewDate, -1) >= minDate
-  const canNextMonth = viewMonth < currentMonth
+  const canNextMonth = viewMonth < shiftMonth(currentMonth, 1)
 
   const moveTo = (date: string) => {
     setViewDate(date)
@@ -76,8 +83,9 @@ function App() {
 
   const goMonth = (delta: number) => {
     if (delta < 0 ? !canPrevMonth : !canNextMonth) return
-    const next = shiftMonthKeepDay(viewDate, delta)
-    moveTo(next > today ? today : next)
+    const nextMonth = shiftMonth(viewMonth, delta)
+    const next = nextMonth > currentMonth ? `${nextMonth}-01` : shiftMonthKeepDay(viewDate, delta)
+    moveTo(next > today && nextMonth <= currentMonth ? today : next)
   }
 
   const changeTab = (next: Tab) => {
@@ -97,18 +105,53 @@ function App() {
 
     setData({ ...data, expenses: nextExpenses })
     setSheet(null)
-    setNotice(getOverflowNotice(data.budgets[fields.date.slice(0, 7)], data.expenses, nextExpenses))
+    const expenseMonth = fields.date.slice(0, 7)
+    const expenseBudget = data.budgets[expenseMonth]
+    const crossing =
+      expenseBudget && expenseMonth === currentMonth
+        ? getSavingsCrossing(expenseBudget, data.expenses, nextExpenses)
+        : null
+    const overflowNotice = crossing
+      ? null
+      : getOverflowNotice(expenseBudget, data.expenses, nextExpenses)
+    if (overflowNotice) {
+      setNotice({
+        title: t.notice.title,
+        message:
+          t.notice.overBy(rupee(overflowNotice.extraBudget), rupee(overflowNotice.overflow)) +
+          (overflowNotice.tomorrow
+            ? t.notice.fromTomorrow(rupee(overflowNotice.tomorrow.now), rupee(overflowNotice.tomorrow.was))
+            : ''),
+      })
+    } else if (crossing === 'income') {
+      setNotice({ title: t.notice.savingsTitle, message: t.notice.savingsFinished })
+    } else if (crossing === 'spendable') {
+      setNotice({ title: t.notice.savingsTitle, message: t.notice.savingsTargetReached })
+    }
 
     const category = data.categories.find((c) => c.id === fields.categoryId)
     const amountText = rupee(fields.amount)
+    const savingsReduced =
+      !editing &&
+      !crossing &&
+      expenseBudget &&
+      expenseMonth === currentMonth &&
+      getTotalSpent(expenseBudget, data.expenses) < expenseBudget.income &&
+      getTotalSpent(expenseBudget, data.expenses) > getSpendable(expenseBudget) &&
+      getTotalSpent(expenseBudget, nextExpenses) <= expenseBudget.income
+        ? getSavings(expenseBudget, data.expenses, currentMonth) -
+          getSavings(expenseBudget, nextExpenses, currentMonth)
+        : 0
     showToast(
-      [
-        editing ? t.toast.updated(amountText) : t.toast.added(amountText),
-        category ? catName(category) : null,
-        fields.date !== viewDate ? formatShortDate(fields.date, locale) : null,
-      ]
-        .filter(Boolean)
-        .join(' · ')
+      savingsReduced > 0
+        ? t.toast.savingsReduced(rupee(savingsReduced))
+        : [
+            editing ? t.toast.updated(amountText) : t.toast.added(amountText),
+            category ? catName(category) : null,
+            fields.date !== viewDate ? formatShortDate(fields.date, locale) : null,
+          ]
+            .filter(Boolean)
+            .join(' · ')
     )
   }
 
@@ -242,6 +285,7 @@ function App() {
               categories={data.categories}
               expenses={data.expenses}
               viewDate={viewDate}
+              isPlanning={isPlanning}
               onAddClick={() => setSheet({ date: viewDate })}
               onExpenseClick={(expense) => setSheet({ expense })}
             />
@@ -313,13 +357,8 @@ function App() {
         )}
         {notice && (
           <NoticeDialog
-            title={t.notice.title}
-            message={
-              t.notice.overBy(rupee(notice.extraBudget), rupee(notice.overflow)) +
-              (notice.tomorrow
-                ? t.notice.fromTomorrow(rupee(notice.tomorrow.now), rupee(notice.tomorrow.was))
-                : '')
-            }
+            title={notice.title}
+            message={notice.message}
             onClose={() => setNotice(null)}
           />
         )}
@@ -329,6 +368,11 @@ function App() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-[480px] flex-col bg-white">
+      {isPlanning && (
+        <div className="mx-5 mt-3 rounded-xl bg-indigo-50 px-4 py-3 text-sm font-medium text-indigo-800">
+          {t.month.planningMode(formatShortDate(`${viewMonth}-01`, 'en-IN'))}
+        </div>
+      )}
       {content}
       {toast && <Toast key={toast.id} message={toast.text} />}
     </div>

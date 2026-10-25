@@ -19,7 +19,7 @@ const expense = (amount: number, date: string, kind: 'regular' | 'extra'): Expen
 })
 
 describe('getDailySeries', () => {
-  const b: MonthBudget = { ...base, extraMode: 'percent', extraValue: 20 } // daily limit 645
+  const b: MonthBudget = { ...base, extraMode: 'percent', extraValue: 20 }
   const list = [
     expense(300, '2026-10-02', 'regular'),
     expense(200, '2026-10-02', 'regular'),
@@ -33,7 +33,7 @@ describe('getDailySeries', () => {
 
   it('adds up regular expenses and ignores extra', () => {
     expect(series[1].spent).toBe(500)
-    expect(series[1].limit).toBe(645)
+    expect(series[1].limit).toBe(666)
   })
 
   it('marks days after today as future', () => {
@@ -47,11 +47,11 @@ describe('getTrendSummary', () => {
     const list = [expense(900, '2026-10-01', 'regular')] // 900 > 806 → red
     const series = getDailySeries(base, list, '2026-10-03')
     expect(getTrendSummary(base, list, series)).toEqual({
-      pace: 1518,
+      pace: 1540,
       pastDays: 3,
       overDays: 1,
       spent: 900,
-      allowed: 2418, // 3 × 806
+      allowed: 2440, // Per-day limits adjust for earlier spending.
     })
   })
 })

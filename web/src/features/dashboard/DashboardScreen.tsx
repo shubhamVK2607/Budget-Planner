@@ -4,7 +4,16 @@ import type { Category, Expense, MonthBudget } from '../../shared/types'
 import { rupee } from '../../shared/utils/format'
 import { formatShortDate, getToday } from '../../shared/utils/date'
 import { useI18n } from '../../shared/i18n/context'
-import { getDailyLimit, getDailyLimitOn, getExtraBudget, getStatus, getTotalFixed } from '../budget/budget'
+import {
+  getDailyLimit,
+  getDailyLimitOn,
+  getExtraBudget,
+  getSavings,
+  getSpendable,
+  getStatus,
+  getTotalFixed,
+  isRegularBudgetFinishedOn,
+} from '../budget/budget'
 import type { Status } from '../budget/budget'
 import { forDate, forMonth, ofKind, sumAmount } from '../expenses/expenses'
 import { ExtraDialog, MonthDialog, RegularDialog } from './SpendingDialogs'
@@ -14,6 +23,7 @@ type Props = {
   categories: Category[]
   expenses: Expense[]
   viewDate: string
+  isPlanning: boolean
   onAddClick: () => void
   onExpenseClick: (expense: Expense) => void
 }
@@ -32,17 +42,21 @@ export default function DashboardScreen({
   categories,
   expenses,
   viewDate,
+  isPlanning,
   onAddClick,
   onExpenseClick,
 }: Props) {
   const { t, locale } = useI18n()
   const [dialog, setDialog] = useState<'month' | 'regular' | 'extra' | null>(null)
+  const [showSavings, setShowSavings] = useState(false)
   const isToday = viewDate === getToday()
 
   const monthExpenses = forMonth(expenses, budget.month)
   const regularMonth = ofKind(monthExpenses, 'regular')
   const extraMonth = ofKind(monthExpenses, 'extra')
-  const dayRegular = ofKind(forDate(expenses, viewDate), 'regular')
+  const dayExpenses = forDate(expenses, viewDate)
+  const dayRegular = ofKind(dayExpenses, 'regular')
+  const dayExtraSpent = sumAmount(ofKind(dayExpenses, 'extra'))
 
   // Regular card: chuna hua din
   const daySpent = sumAmount(dayRegular)
@@ -50,6 +64,7 @@ export default function DashboardScreen({
   const dayLimit = getDailyLimitOn(budget, expenses, viewDate)
   const dayStatus = getStatus(daySpent, dayLimit)
   const rs = statusStyle[dayStatus]
+  const regularFinished = isRegularBudgetFinishedOn(budget, expenses, viewDate)
   const dayLabel = isToday ? t.home.today : formatShortDate(viewDate, locale).toUpperCase()
 
   // Extra card: poora mahina
@@ -63,12 +78,62 @@ export default function DashboardScreen({
   const regularSpent = sumAmount(regularMonth)
   const fixedTotal = getTotalFixed(budget)
   const totalSpent = fixedTotal + regularSpent + extraSpent
-  const scale = Math.max(budget.income, totalSpent, 1)
-  const remaining = budget.income - totalSpent
+  const spendable = getSpendable(budget)
+  const scale = Math.max(spendable, totalSpent, 1)
+  const remaining = spendable - totalSpent
+  const savings = getSavings(budget, expenses)
+  const savingsTarget = budget.savingsTarget ?? 0
+  const savingsReduced = Math.min(savingsTarget, Math.max(0, savingsTarget - savings))
+  const usingSavings = savings < savingsTarget
+  const shownSavings = Math.max(0, savings)
+  const savingsIndicator = (
+    <div className="flex justify-end">
+      <button
+        type="button"
+        aria-label={t.common.savings}
+        aria-expanded={showSavings}
+        onClick={() => setShowSavings(!showSavings)}
+        className={`rounded-full px-3 py-1.5 text-xs font-bold ${
+          usingSavings ? 'bg-red-100 text-red-800 ring-1 ring-red-200' : 'bg-slate-100 text-slate-700 ring-1 ring-slate-200'
+        }`}
+      >
+        {showSavings
+          ? usingSavings && savingsReduced > 0
+            ? t.home.savingsReduced(rupee(shownSavings), rupee(savingsReduced))
+            : t.home.savingsAmount(rupee(shownSavings))
+          : usingSavings
+            ? t.home.usingSavings
+            : t.common.savings}
+      </button>
+    </div>
+  )
 
   return (
     <>
-      <div className="space-y-4 p-5">
+      {isPlanning ? (
+        <div className="space-y-4 p-5 pb-28">
+          <section className="rounded-2xl border border-indigo-100 bg-indigo-50 p-5">
+            <h2 className="mb-4 text-sm font-bold tracking-wide text-indigo-900">{t.home.planTitle}</h2>
+            <div className="space-y-3">
+              {[
+                [t.common.income, budget.income],
+                [t.common.fixed, getTotalFixed(budget)],
+                [t.common.spendable, getSpendable(budget)],
+                [t.common.savings, budget.savingsTarget ?? 0],
+                [t.home.expectedDailyLimit, getDailyLimit(budget)],
+                [t.home.planExtraBudget, getExtraBudget(budget)],
+              ].map(([label, amount]) => (
+                <div key={label} className="flex justify-between gap-3 text-sm">
+                  <span className="text-slate-600">{String(label)}</span>
+                  <b>{rupee(Number(amount))}</b>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      ) : (
+        <>
+      <div className="space-y-4 p-5 pb-28">
         {/* THIS MONTH */}
         <button
           onClick={() => setDialog('month')}
@@ -78,7 +143,7 @@ export default function DashboardScreen({
             <span className="text-sm font-medium text-slate-500">{t.home.thisMonth}</span>
             <span className="text-lg">
               <b>{rupee(totalSpent)}</b>
-              <span className="text-sm text-slate-400"> / {rupee(budget.income)}</span>
+              <span className="text-sm text-slate-400"> / {rupee(spendable)}</span>
             </span>
           </div>
           <div className="mt-4 flex h-3 overflow-hidden rounded-full bg-slate-200">
@@ -99,13 +164,17 @@ export default function DashboardScreen({
           </div>
           <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3 text-sm">
             <span className={`font-medium ${remaining >= 0 ? 'text-slate-600' : 'text-red-600'}`}>
-              {remaining >= 0 ? t.home.leftOfIncome(rupee(remaining)) : t.home.overIncome(rupee(-remaining))}
+              {remaining >= 0
+                ? t.home.leftOfSpendable(rupee(remaining))
+                : t.home.overSpendable(rupee(-remaining))}
             </span>
             <span className="flex items-center gap-0.5 text-xs text-slate-400">
               {t.home.seeAll} <ChevronRight size={14} />
             </span>
           </div>
         </button>
+
+        {savingsIndicator}
 
         {/* REGULAR */}
         <button
@@ -120,10 +189,17 @@ export default function DashboardScreen({
           </div>
 
           <div className="mt-3">
-            <div className="text-xs font-medium text-slate-500">{dayLabel}</div>
-            <div className="mt-1 text-3xl font-bold">
-              {rupee(daySpent)}{' '}
-              <span className="text-lg font-medium text-slate-400">/ {rupee(dayLimit)}</span>
+            <div className="flex min-h-6 items-center justify-between gap-2 text-xs font-bold text-slate-500">
+              <span>{dayLabel}</span>
+            </div>
+            <div className="mt-1 flex items-baseline justify-between gap-2">
+              <div className="min-w-0 whitespace-nowrap text-3xl font-bold">
+                {rupee(daySpent)}{' '}
+                <span className="text-lg font-medium text-slate-400">/ {rupee(dayLimit)}</span>
+              </div>
+              <span className="shrink-0 text-md font-semibold tabular-nums text-slate-700">
+                {t.home.extraOnDay(rupee(dayExtraSpent))}
+              </span>
             </div>
             <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-white">
               <div
@@ -132,7 +208,9 @@ export default function DashboardScreen({
               />
             </div>
             <div className={`mt-2 text-sm font-medium ${rs.text}`}>
-              {daySpent <= dayLimit
+              {regularFinished
+                ? t.home.regularFinished
+                : daySpent <= dayLimit
                 ? t.home.leftOn(rupee(dayLimit - daySpent), isToday)
                 : t.home.overOn(rupee(daySpent - dayLimit), isToday)}
             </div>
@@ -216,6 +294,8 @@ export default function DashboardScreen({
           onExpenseClick={onExpenseClick}
           onClose={() => setDialog(null)}
         />
+      )}
+        </>
       )}
     </>
   )

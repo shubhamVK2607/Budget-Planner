@@ -12,6 +12,8 @@ export const hi: Dict = {
     fixed: 'फिक्स्ड',
     income: 'आमदनी',
     fixedExpenses: 'फिक्स्ड खर्च',
+    spendable: 'Spendable',
+    savings: 'Savings',
     dailyLimit: 'रोज़ की सीमा',
     thisMonth: 'इस महीने',
     today: 'आज',
@@ -51,6 +53,8 @@ export const hi: Dict = {
     thisMonth: 'इस महीने',
     leftOfIncome: (a: string) => `आमदनी में से ${a} बचे`,
     overIncome: (a: string) => `आमदनी से ${a} ज़्यादा`,
+    leftOfSpendable: (a: string) => `${a} left of spendable budget`,
+    overSpendable: (a: string) => `${a} over spendable budget`,
     seeAll: 'पूरा खर्च देखें',
     regularTitle: 'रोज़ाना',
     today: 'आज',
@@ -60,8 +64,17 @@ export const hi: Dict = {
     reduced: (a: string) => `एक्स्ट्रा खर्च बजट से ज़्यादा होने के कारण ${a} से घटाई गई।`,
     seeExpenses: (isToday: boolean) => (isToday ? 'आज के खर्च देखें' : 'इस दिन के खर्च देखें'),
     extraTitle: 'एक्स्ट्रा',
+    extraOnDay: (amount: string) => `Extra · ${amount}`,
     extraOver: (a: string) => `${a} ज़्यादा, आपके रोज़ाना बजट से लिया गया`,
     extraLeft: (a: string) => `एक्स्ट्रा बजट में ${a} बचे`,
+    savingsTitle: 'SAVINGS',
+    savingsAmount: (amount: string) => `Savings ${amount}`,
+    savingsReduced: (amount: string, less: string) => `Savings ${amount} (${less} less)`,
+    usingSavings: 'Using savings',
+    regularFinished: 'Regular budget finished',
+    planTitle: 'MONTHLY PLAN',
+    expectedDailyLimit: 'Expected daily limit',
+    planExtraBudget: 'Extra budget',
     seeExtra: 'इस महीने के एक्स्ट्रा खर्च देखें',
     addExpense: 'खर्च जोड़ें',
   },
@@ -141,6 +154,8 @@ export const hi: Dict = {
     copyFrom: (month: string) => `${month} से कॉपी करें`,
     copyBudget: 'बजट कॉपी करें',
     startFresh: 'नए सिरे से शुरू करें',
+    planningMode: (date: string) => `Planning mode: entries start on ${date}`,
+    planTitle: 'Monthly plan',
   },
 
   settings: {
@@ -188,8 +203,8 @@ export const hi: Dict = {
     incomeTitle: 'आपकी महीने की आमदनी कितनी है?',
     incomeSub: 'इस महीने की सैलरी या कुल कमाई।',
     whatNext: 'आगे क्या होगा',
-    next1: '1. अपने फिक्स्ड बिल जोड़ें (किराया, EMI, SIP)',
-    next2: '2. हम बताएँगे कि खर्च के लिए कितना बचा',
+    next1: '1. Choose a savings target',
+    next2: '2. Add your fixed bills (rent, EMI, SIP)',
     next3: '3. आपको रोज़ की आसान सीमा मिलेगी',
     units: { crore: 'करोड़', lakh: 'लाख', thousand: 'हज़ार' },
     fixedTitle: 'फिक्स्ड खर्च',
@@ -209,7 +224,11 @@ export const hi: Dict = {
     pendingHint: 'एक और जोड़ने के लिए जोड़ें दबाएँ, या सेव करके आगे बढ़ने के लिए आगे दबाएँ।',
     fixedTotal: 'फिक्स्ड कुल',
     leftToSpend: 'खर्च के लिए बचा',
-    fixedExceeds: 'फिक्स्ड खर्च आपकी आमदनी से ज़्यादा हैं!',
+    fixedExceeds: 'Fixed expenses exceed your Spendable amount!',
+    savingsTitle: 'How much do you want to save this month?',
+    savingsDesc: 'Set aside your savings first. Fixed, Regular and Extra spending will come from the rest.',
+    savingsLabel: 'Monthly savings target',
+    savingsExceedsIncome: 'Savings target must be less than your income.',
     limitTitle: 'रोज़ की सीमा',
     limitDesc:
       'हम कुछ पैसे रोज़ के खर्च से अलग रखते हैं, जैसे इलाज, मरम्मत या शॉपिंग के लिए। बाकी पैसा पूरे महीने में बँटकर आपकी रोज़ की सीमा बनता है।',
@@ -231,6 +250,9 @@ export const hi: Dict = {
 
   notice: {
     title: 'एक्स्ट्रा बजट पार हो गया',
+    savingsTitle: 'Savings update',
+    savingsTargetReached: 'Monthly budget finished. From now on your Savings will reduce.',
+    savingsFinished: 'Savings finished. You are now overspending.',
     overBy: (budget: string, over: string) =>
       `आपका ${budget} का एक्स्ट्रा खर्च बजट ${over} से ज़्यादा हो गया है।`,
     fromTomorrow: (now: string, was: string) =>
@@ -242,6 +264,7 @@ export const hi: Dict = {
     updated: (a: string) => `${a} अपडेट हुए`,
     deleted: 'खर्च हटाया गया',
     merged: (from: string, to: string) => `${from} को ${to} में मिलाया गया`,
+    savingsReduced: (amount: string) => `Savings reduced by ${amount}`,
   },
 
   defaultCategories: {

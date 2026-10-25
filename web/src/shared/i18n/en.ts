@@ -9,6 +9,8 @@ export const en = {
     fixed: 'Fixed',
     income: 'Income',
     fixedExpenses: 'Fixed expenses',
+    spendable: 'Spendable',
+    savings: 'Savings',
     dailyLimit: 'Daily limit',
     thisMonth: 'This month',
     today: 'Today',
@@ -48,6 +50,8 @@ export const en = {
     thisMonth: 'THIS MONTH',
     leftOfIncome: (a: string) => `${a} left of income`,
     overIncome: (a: string) => `${a} over income`,
+    leftOfSpendable: (a: string) => `${a} left of spendable budget`,
+    overSpendable: (a: string) => `${a} over spendable budget`,
     seeAll: 'See all spending',
     regularTitle: 'REGULAR',
     today: 'TODAY',
@@ -57,8 +61,17 @@ export const en = {
     reduced: (a: string) => `Reduced from ${a} because extra spending went over budget.`,
     seeExpenses: (isToday: boolean) => (isToday ? "See today's expenses" : "See this day's expenses"),
     extraTitle: 'EXTRA',
+    extraOnDay: (amount: string) => `Extra · ${amount}`,
     extraOver: (a: string) => `${a} over, taken from your regular budget`,
     extraLeft: (a: string) => `${a} left in extra budget`,
+    savingsTitle: 'SAVINGS',
+    savingsAmount: (amount: string) => `Savings ${amount}`,
+    savingsReduced: (amount: string, less: string) => `Savings ${amount} (${less} less)`,
+    usingSavings: 'Using savings',
+    regularFinished: 'Regular budget finished',
+    planTitle: 'MONTHLY PLAN',
+    expectedDailyLimit: 'Expected daily limit',
+    planExtraBudget: 'Extra budget',
     seeExtra: "See this month's extra expenses",
     addExpense: 'Add expense',
   },
@@ -138,6 +151,8 @@ export const en = {
     copyFrom: (month: string) => `Copy from ${month}`,
     copyBudget: 'Copy budget',
     startFresh: 'Start fresh',
+    planningMode: (date: string) => `Planning mode: entries start on ${date}`,
+    planTitle: 'Monthly plan',
   },
 
   settings: {
@@ -185,8 +200,8 @@ export const en = {
     incomeTitle: "What's your monthly income?",
     incomeSub: 'Your salary or total earnings for this month.',
     whatNext: 'What happens next',
-    next1: '1. Add your fixed bills (rent, EMI, SIP)',
-    next2: "2. We show what's left to spend",
+    next1: '1. Choose a savings target',
+    next2: '2. Add your fixed bills (rent, EMI, SIP)',
     next3: '3. You get a simple daily limit',
     units: { crore: 'crore', lakh: 'lakh', thousand: 'thousand' },
     fixedTitle: 'Fixed expenses',
@@ -206,7 +221,11 @@ export const en = {
     pendingHint: 'Tap Add for another one, or Next to save and continue.',
     fixedTotal: 'Fixed total',
     leftToSpend: 'Left to spend',
-    fixedExceeds: 'Fixed expenses exceed your income!',
+    fixedExceeds: 'Fixed expenses exceed your Spendable amount!',
+    savingsTitle: 'How much do you want to save this month?',
+    savingsDesc: 'Set aside your savings first. Fixed, Regular and Extra spending will come from the rest.',
+    savingsLabel: 'Monthly savings target',
+    savingsExceedsIncome: 'Savings target must be less than your income.',
     limitTitle: 'Daily limit',
     limitDesc:
       'We keep some money aside for spending outside your daily routine, like medical bills, repairs or shopping. The rest is spread across the month as your daily limit.',
@@ -228,6 +247,9 @@ export const en = {
 
   notice: {
     title: 'Extra budget exceeded',
+    savingsTitle: 'Savings update',
+    savingsTargetReached: 'Monthly budget finished. From now on your Savings will reduce.',
+    savingsFinished: 'Savings finished. You are now overspending.',
     overBy: (budget: string, over: string) =>
       `Your extra expenses budget of ${budget} is over by ${over}.`,
     fromTomorrow: (now: string, was: string) =>
@@ -239,6 +261,7 @@ export const en = {
     updated: (a: string) => `Updated ${a}`,
     deleted: 'Expense deleted',
     merged: (from: string, to: string) => `Merged ${from} into ${to}`,
+    savingsReduced: (amount: string) => `Savings reduced by ${amount}`,
   },
 
   defaultCategories: {

@@ -122,7 +122,7 @@ export default function InsightsScreen({ categories, expenses, month, today, onE
 
           <div>
             <div className="mb-2 text-sm font-medium text-slate-500">{t.insights.byCategory}</div>
-            <div className="max-h-[19rem] divide-y divide-slate-100 overflow-y-auto overscroll-contain rounded-2xl border border-slate-100">
+            <div className="max-h-[18rem] divide-y divide-slate-100 overflow-y-auto overscroll-contain rounded-2xl border border-slate-100">
               {slices.map((s) => (
                 <button
                   key={s.id}

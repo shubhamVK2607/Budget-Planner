@@ -102,4 +102,39 @@ describe('migrate to schema 2', () => {
     expect(twice).toEqual(custom)
     expect(byId(twice, 'c1')?.key).toBeUndefined()
   })
+
+  it('adds a zero savings target to old budgets when migrating to schema 3', () => {
+    const old = {
+      ...oldData(),
+      schema: 2,
+      budgets: {
+        '2026-10': {
+          month: '2026-10',
+          income: 50000,
+          fixedItems: [],
+          dailyLimitMode: 'auto' as const,
+        },
+      },
+    }
+    const migrated = migrate(old)
+    expect(migrated.schema).toBe(3)
+    expect(migrated.budgets['2026-10'].savingsTarget).toBe(0)
+  })
+
+  it('preserves savings targets when migrating existing budgets', () => {
+    const old = {
+      ...oldData(),
+      schema: 2,
+      budgets: {
+        '2026-10': {
+          month: '2026-10',
+          income: 50000,
+          savingsTarget: 8000,
+          fixedItems: [],
+          dailyLimitMode: 'auto' as const,
+        },
+      },
+    }
+    expect(migrate(old).budgets['2026-10'].savingsTarget).toBe(8000)
+  })
 })

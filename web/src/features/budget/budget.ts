@@ -16,8 +16,12 @@ export function getTotalFixed(budget: MonthBudget): number {
   return budget.fixedItems.reduce((sum, item) => sum + item.amount, 0)
 }
 
+export function getSpendable(budget: MonthBudget): number {
+  return budget.income - (budget.savingsTarget ?? 0)
+}
+
 export function getPool(budget: MonthBudget): number {
-  return budget.income - getTotalFixed(budget)
+  return getSpendable(budget) - getTotalFixed(budget)
 }
 
 // Maximum possible daily limit (jab Extra = 0). Manual limit isse zyada nahi ho sakti.
@@ -59,6 +63,18 @@ export function getDailyLimit(budget: MonthBudget): number {
 
 const dayOf = (date: string) => Number(date.slice(8, 10))
 
+function getRegularAvailableOn(budget: MonthBudget, expenses: Expense[], date: string): number {
+  const beforeDate = expenses.filter((e) => e.date.startsWith(budget.month) && e.date < date)
+  const regularSpent = beforeDate
+    .filter((e) => e.kind !== 'extra')
+    .reduce((sum, e) => sum + e.amount, 0)
+  const extraSpent = beforeDate
+    .filter((e) => e.kind === 'extra')
+    .reduce((sum, e) => sum + e.amount, 0)
+  const overflow = Math.max(0, extraSpent - getExtraBudget(budget))
+  return getRegularBudget(budget) - regularSpent - overflow
+}
+
 // Extra overflow ki wajah se kisi din ki limit kitni kam hui.
 // Rule: overflow jis din hua, uske agle din se bache hue dinon me barabar baant diya jata hai.
 export function getOverflowReduction(budget: MonthBudget, expenses: Expense[], date: string): number {
@@ -85,8 +101,53 @@ export function getOverflowReduction(budget: MonthBudget, expenses: Expense[], d
 
 // Kisi bhi din ki asli daily limit (overflow ke baad)
 export function getDailyLimitOn(budget: MonthBudget, expenses: Expense[], date: string): number {
+  if (budget.dailyLimitMode === 'auto') {
+    const day = dayOf(date)
+    const days = getDaysInMonth(budget.month)
+    const available = getRegularAvailableOn(budget, expenses, date)
+    return Math.max(0, Math.floor(available / (days - day + 1)))
+  }
+
   const limit = getDailyLimit(budget) - getOverflowReduction(budget, expenses, date)
   return Math.max(0, Math.floor(limit))
+}
+
+export function isRegularBudgetFinishedOn(budget: MonthBudget, expenses: Expense[], date: string): boolean {
+  if (budget.dailyLimitMode !== 'auto') return false
+  return getRegularAvailableOn(budget, expenses, date) <= 0
+}
+
+export function getTotalSpent(budget: MonthBudget, expenses: Expense[]): number {
+  return (
+    getTotalFixed(budget) +
+    expenses
+      .filter((e) => e.date.startsWith(budget.month))
+      .reduce((sum, e) => sum + e.amount, 0)
+  )
+}
+
+export function getSavings(
+  budget: MonthBudget,
+  expenses: Expense[],
+  currentMonth = getCurrentMonth()
+): number {
+  const spent = getTotalSpent(budget, expenses)
+  if (budget.month < currentMonth) return budget.income - spent
+  return budget.income - Math.max(spent, getSpendable(budget))
+}
+
+export type SavingsCrossing = 'spendable' | 'income'
+
+export function getSavingsCrossing(
+  budget: MonthBudget,
+  before: Expense[],
+  after: Expense[]
+): SavingsCrossing | null {
+  const spentBefore = getTotalSpent(budget, before)
+  const spentAfter = getTotalSpent(budget, after)
+  if (spentBefore < budget.income && spentAfter >= budget.income) return 'income'
+  if (spentBefore <= getSpendable(budget) && spentAfter > getSpendable(budget)) return 'spendable'
+  return null
 }
 
 export function getStatus(spent: number, limit: number): Status {

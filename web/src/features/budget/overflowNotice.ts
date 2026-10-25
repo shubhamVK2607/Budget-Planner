@@ -18,7 +18,7 @@ export function getOverflowNotice(
 
   const overflowBefore = getOverflow(budget, before)
   const overflowAfter = getOverflow(budget, after)
-  if (overflowAfter <= overflowBefore) return null
+  if (overflowBefore > 0 || overflowAfter <= 0) return null
 
   const notice: OverflowNotice = { extraBudget: getExtraBudget(budget), overflow: overflowAfter }
 

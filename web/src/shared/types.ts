@@ -26,6 +26,7 @@ export type FixedItem = {
 export type MonthBudget = {
   month: string // "2026-10"
   income: number
+  savingsTarget?: number
   fixedItems: FixedItem[]
   dailyLimitMode: 'auto' | 'manual'
   manualDailyLimit?: number

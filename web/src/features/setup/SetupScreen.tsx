@@ -6,6 +6,8 @@ import {
   getExtraBudget,
   getPool,
   getRegularBudget,
+  getSpendable,
+  getTotalFixed,
 } from '../budget/budget'
 import { rupee, digits } from '../../shared/utils/format'
 import { useI18n } from '../../shared/i18n/context'
@@ -28,6 +30,7 @@ export default function SetupScreen({ month, initial, onDone, onCancel }: Props)
   const { t, lang } = useI18n()
   const [step, setStep] = useState(1)
   const [income, setIncome] = useState(initial ? String(initial.income) : '')
+  const [savingsTarget, setSavingsTarget] = useState(String(initial?.savingsTarget ?? 0))
   const [fixedItems, setFixedItems] = useState<FixedItem[]>(initial?.fixedItems ?? [])
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
@@ -46,6 +49,7 @@ export default function SetupScreen({ month, initial, onDone, onCancel }: Props)
   const draft: MonthBudget = {
     month,
     income: Number(income) || 0,
+    savingsTarget: Number(savingsTarget) || 0,
     fixedItems: allFixed,
     dailyLimitMode: mode,
     manualDailyLimit: manual ? Number(manual) : undefined,
@@ -59,6 +63,7 @@ export default function SetupScreen({ month, initial, onDone, onCancel }: Props)
   const dailyLimit = getDailyLimit(draft)
 
   const manualInvalid = mode === 'manual' && (!Number(manual) || Number(manual) > maxDailyLimit)
+  const savingsInvalid = Number(income) > 0 && Number(savingsTarget) >= Number(income)
   const extraInvalid =
     mode === 'auto' &&
     ((extraMode === 'percent' && Number(extraValue) > 100) ||
@@ -72,9 +77,9 @@ export default function SetupScreen({ month, initial, onDone, onCancel }: Props)
     setAmount('')
   }
 
-  const goToStep3 = () => {
+  const goToStep4 = () => {
     commitPending()
-    setStep(3)
+    setStep(4)
   }
 
   const availableSuggestions = t.setup.suggestions.filter(
@@ -101,7 +106,7 @@ export default function SetupScreen({ month, initial, onDone, onCancel }: Props)
         </button>
       )}
       <div className="mb-6 flex gap-2">
-        {[1, 2, 3].map((s) => (
+        {[1, 2, 3, 4].map((s) => (
           <div key={s} className={`h-1.5 flex-1 rounded-full ${s <= step ? 'bg-indigo-600' : 'bg-slate-200'}`} />
         ))}
       </div>
@@ -109,6 +114,34 @@ export default function SetupScreen({ month, initial, onDone, onCancel }: Props)
       {step === 1 && <IncomeStep value={income} onChange={setIncome} onNext={() => setStep(2)} />}
 
       {step === 2 && (
+        <>
+          <h1 className="text-2xl font-bold">{t.setup.savingsTitle}</h1>
+          <p className="mb-5 mt-1 text-slate-500">{t.setup.savingsDesc}</p>
+          <label className="mb-2 font-medium" htmlFor="savings-target">{t.setup.savingsLabel}</label>
+          <input
+            id="savings-target"
+            className={inputCls}
+            inputMode="numeric"
+            placeholder="0"
+            value={savingsTarget}
+            onChange={(e) => setSavingsTarget(digits(e.target.value))}
+          />
+          <div className="mt-5 rounded-xl bg-indigo-50 p-4">
+            <div className="flex justify-between">
+              <span>{t.common.income}</span><b>{rupee(draft.income)}</b>
+            </div>
+            <div className="mt-2 flex justify-between border-t border-indigo-200 pt-2">
+              <span>{t.common.spendable}</span><b>{rupee(getSpendable(draft))}</b>
+            </div>
+          </div>
+          {savingsInvalid && <p className="mt-2 text-red-600">{t.setup.savingsExceedsIncome}</p>}
+          <button className={btnCls} disabled={savingsInvalid} onClick={() => setStep(3)}>
+            {t.common.next}
+          </button>
+        </>
+      )}
+
+      {step === 3 && (
         <>
           <h1 className="text-2xl font-bold">{t.setup.fixedTitle}</h1>
           <p className="mb-4 mt-1 text-slate-500">{t.setup.fixedSub}</p>
@@ -180,20 +213,21 @@ export default function SetupScreen({ month, initial, onDone, onCancel }: Props)
 
           <div className="mt-6 rounded-xl bg-indigo-50 p-4">
             <div className="flex justify-between"><span>{t.common.income}</span><b>{rupee(draft.income)}</b></div>
-            <div className="flex justify-between"><span>{t.setup.fixedTotal}</span><b>{rupee(draft.income - pool)}</b></div>
+            <div className="flex justify-between"><span>{t.common.spendable}</span><b>{rupee(getSpendable(draft))}</b></div>
+            <div className="flex justify-between"><span>{t.setup.fixedTotal}</span><b>{rupee(getTotalFixed(draft))}</b></div>
             <div className="mt-2 flex justify-between border-t border-indigo-200 pt-2">
               <span>{t.setup.leftToSpend}</span><b>{rupee(pool)}</b>
             </div>
           </div>
-          {pool <= 0 && <p className="mt-2 text-red-600">{t.setup.fixedExceeds}</p>}
+          {pool < 0 && <p className="mt-2 text-red-600">{t.setup.fixedExceeds}</p>}
 
-          <button className={btnCls} disabled={pool <= 0} onClick={goToStep3}>
+          <button className={btnCls} disabled={pool <= 0} onClick={goToStep4}>
             {t.common.next}
           </button>
         </>
       )}
 
-      {step === 3 && (
+      {step === 4 && (
         <>
           <h1 className="text-2xl font-bold">{t.setup.limitTitle}</h1>
           <p className="mb-5 mt-1 text-slate-500">{t.setup.limitDesc}</p>

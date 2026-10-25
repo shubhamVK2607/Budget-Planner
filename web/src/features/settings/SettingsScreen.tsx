@@ -4,7 +4,7 @@ import type { Language, Theme } from '../../services/settings'
 import { rupee } from '../../shared/utils/format'
 import { formatMonth } from '../../shared/utils/date'
 import { useI18n, useSettings } from '../../shared/i18n/context'
-import { getDailyLimit, getExtraBudget, getTotalFixed } from '../budget/budget'
+import { getDailyLimit, getExtraBudget, getSpendable, getTotalFixed } from '../budget/budget'
 import CategoryManager from './CategoryManager'
 import BackupSection from './BackupSection'
 
@@ -67,6 +67,8 @@ export default function SettingsScreen({
       </div>
       <div className="mb-6 rounded-2xl border border-slate-100 p-4">
         <div className="flex justify-between"><span>{t.common.income}</span><b>{rupee(budget.income)}</b></div>
+        <div className="flex justify-between"><span>{t.common.savings}</span><b>{rupee(budget.savingsTarget ?? 0)}</b></div>
+        <div className="flex justify-between"><span>{t.common.spendable}</span><b>{rupee(getSpendable(budget))}</b></div>
         <div className="flex justify-between"><span>{t.common.fixedExpenses}</span><b>{rupee(getTotalFixed(budget))}</b></div>
         <div className="flex justify-between"><span>{t.settings.extraBudget}</span><b>{rupee(getExtraBudget(budget))}</b></div>
         <div className="flex justify-between"><span>{t.common.dailyLimit}</span><b>{rupee(getDailyLimit(budget))}</b></div>
